@@ -1,76 +1,71 @@
 {
   "level_id": 2,
-  "title": "Wall Test",
-  "description": "Navigate the maze, find the key, and unlock the door.",
+  "title": "Which Key?",
+  "description": "Two keys, one door. Be specific about which key you want.",
   "grid": {
-    "width": 6,
-    "height": 6,
+    "width": 5,
+    "height": 4,
     "tiles": [
-      { "x": 0, "y": 0, "type": "floor" },
+      { "x": 0, "y": 0, "type": "wall" },
       { "x": 1, "y": 0, "type": "floor" },
       { "x": 2, "y": 0, "type": "floor" },
       { "x": 3, "y": 0, "type": "floor" },
-      { "x": 4, "y": 0, "type": "floor" },
-      { "x": 5, "y": 0, "type": "wall" },
+      { "x": 4, "y": 0, "type": "wall" },
 
-      { "x": 0, "y": 1, "type": "floor" },
-      { "x": 1, "y": 1, "type": "wall" },
-      { "x": 2, "y": 1, "type": "wall" },
-      { "x": 3, "y": 1, "type": "wall" },
-      { "x": 4, "y": 1, "type": "floor" },
-      { "x": 5, "y": 1, "type": "wall" },
+      { "x": 0, "y": 1, "type": "wall" },
+      { "x": 1, "y": 1, "type": "floor" },
+      { "x": 2, "y": 1, "type": "floor" },
+      { "x": 3, "y": 1, "type": "floor" },
+      { "x": 4, "y": 1, "type": "door" },
 
-      { "x": 0, "y": 2, "type": "floor" },
+      { "x": 0, "y": 2, "type": "wall" },
       { "x": 1, "y": 2, "type": "floor" },
       { "x": 2, "y": 2, "type": "floor" },
       { "x": 3, "y": 2, "type": "floor" },
-      { "x": 4, "y": 2, "type": "floor" },
-      { "x": 5, "y": 2, "type": "door" },
+      { "x": 4, "y": 2, "type": "wall" },
 
-      { "x": 0, "y": 3, "type": "floor" },
+      { "x": 0, "y": 3, "type": "wall" },
       { "x": 1, "y": 3, "type": "wall" },
       { "x": 2, "y": 3, "type": "wall" },
       { "x": 3, "y": 3, "type": "wall" },
-      { "x": 4, "y": 3, "type": "floor" },
-      { "x": 5, "y": 3, "type": "wall" },
-
-      { "x": 0, "y": 4, "type": "floor" },
-      { "x": 1, "y": 4, "type": "floor" },
-      { "x": 2, "y": 4, "type": "floor" },
-      { "x": 3, "y": 4, "type": "floor" },
-      { "x": 4, "y": 4, "type": "floor" },
-      { "x": 5, "y": 4, "type": "wall" },
-
-      { "x": 0, "y": 5, "type": "wall" },
-      { "x": 1, "y": 5, "type": "wall" },
-      { "x": 2, "y": 5, "type": "wall" },
-      { "x": 3, "y": 5, "type": "wall" },
-      { "x": 4, "y": 5, "type": "wall" },
-      { "x": 5, "y": 5, "type": "wall" }
+      { "x": 4, "y": 3, "type": "wall" }
     ]
   },
   "objects": [
     {
+      "id": "key_gold",
+      "type": "key",
+      "display_name": "Gold Key",
+      "position": { "x": 1, "y": 1 },
+      "properties": {
+        "color": "gold",
+        "size": "small",
+        "shape": "ornate",
+        "unlocks_door_id": "door_main",
+        "variant": 1
+      }
+    },
+    {
       "id": "key_silver",
       "type": "key",
       "display_name": "Silver Key",
-      "position": { "x": 2, "y": 2 },
+      "position": { "x": 3, "y": 1 },
       "properties": {
         "color": "silver",
         "size": "small",
-        "shape": "classic",
-        "unlocks_door_id": "door_east",
+        "shape": "simple",
+        "unlocks_door_id": "",
         "variant": 2
       }
     },
     {
-      "id": "door_east",
+      "id": "door_main",
       "type": "door",
-      "display_name": "Eastern Door",
-      "position": { "x": 5, "y": 2 },
+      "display_name": "Main Door",
+      "position": { "x": 4, "y": 1 },
       "properties": {
         "state": "locked",
-        "required_key_id": "key_silver"
+        "required_key_id": "key_gold"
       }
     }
   ],
@@ -78,13 +73,13 @@
     {
       "id": "explorer_1",
       "name": "Sage",
-      "position": { "x": 0, "y": 0 },
-      "profile_id": "sage_profile",
+      "position": { "x": 1, "y": 0 },
+      "profile_id": "sage_standard",
       "profile": {
-        "profile_id": "sage_profile",
+        "profile_id": "sage_standard",
         "name": "Sage",
-        "bio": "A calm traveler who listens well.",
-        "comprehension": "clever",
+        "bio": "Sage listens carefully but needs clear instructions. When things are ambiguous, Sage will ask for clarification.",
+        "comprehension": "standard",
         "perception_quirks": [],
         "personality_quirks": [],
         "direction_mode": "absolute"
@@ -94,9 +89,9 @@
   "objectives": [
     { "type": "reach_exit", "target_character": "explorer_1" }
   ],
-  "prompt_budget": 8,
+  "prompt_budget": 6,
   "prompt_max_length": 150,
-  "par_score": 4,
+  "par_score": 2,
   "hints": {
     "bio_visible": true,
     "observation_cost": 1

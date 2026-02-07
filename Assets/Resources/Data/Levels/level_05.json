@@ -1,34 +1,34 @@
 {
   "level_id": 5,
-  "title": "Gem and Pedestal",
-  "description": "Place the gem on the pedestal to open the exit.",
+  "title": "What Do You See?",
+  "description": "This explorer has their own names for everything. Ask what they see, and remember to tell them to hold on to things.",
   "grid": {
     "width": 5,
     "height": 5,
     "tiles": [
-      { "x": 0, "y": 0, "type": "floor" },
+      { "x": 0, "y": 0, "type": "wall" },
       { "x": 1, "y": 0, "type": "floor" },
       { "x": 2, "y": 0, "type": "floor" },
       { "x": 3, "y": 0, "type": "floor" },
-      { "x": 4, "y": 0, "type": "wall" },
+      { "x": 4, "y": 0, "type": "exit" },
 
-      { "x": 0, "y": 1, "type": "floor" },
+      { "x": 0, "y": 1, "type": "wall" },
       { "x": 1, "y": 1, "type": "floor" },
       { "x": 2, "y": 1, "type": "floor" },
       { "x": 3, "y": 1, "type": "floor" },
       { "x": 4, "y": 1, "type": "wall" },
 
-      { "x": 0, "y": 2, "type": "floor" },
+      { "x": 0, "y": 2, "type": "wall" },
       { "x": 1, "y": 2, "type": "floor" },
       { "x": 2, "y": 2, "type": "floor" },
       { "x": 3, "y": 2, "type": "floor" },
       { "x": 4, "y": 2, "type": "wall" },
 
-      { "x": 0, "y": 3, "type": "floor" },
+      { "x": 0, "y": 3, "type": "wall" },
       { "x": 1, "y": 3, "type": "floor" },
       { "x": 2, "y": 3, "type": "floor" },
       { "x": 3, "y": 3, "type": "floor" },
-      { "x": 4, "y": 3, "type": "exit" },
+      { "x": 4, "y": 3, "type": "wall" },
 
       { "x": 0, "y": 4, "type": "wall" },
       { "x": 1, "y": 4, "type": "wall" },
@@ -42,13 +42,26 @@
       "id": "gem_red",
       "type": "gem",
       "display_name": "Ruby",
-      "position": { "x": 0, "y": 2 },
+      "position": { "x": 1, "y": 3 },
       "properties": {
         "color": "red",
         "size": "small",
         "shape": "round",
         "target_pedestal_id": "pedestal_1",
         "variant": 1
+      }
+    },
+    {
+      "id": "gem_blue",
+      "type": "gem",
+      "display_name": "Sapphire",
+      "position": { "x": 3, "y": 3 },
+      "properties": {
+        "color": "blue",
+        "size": "small",
+        "shape": "diamond",
+        "target_pedestal_id": "",
+        "variant": 2
       }
     },
     {
@@ -64,16 +77,46 @@
   "characters": [
     {
       "id": "explorer_1",
-      "name": "Sage",
-      "position": { "x": 0, "y": 0 },
-      "profile_id": "sage_profile"
+      "name": "Pip",
+      "position": { "x": 1, "y": 0 },
+      "profile_id": "pip_vocabulary",
+      "profile": {
+        "profile_id": "pip_vocabulary",
+        "name": "Pip",
+        "bio": "Pip sees the world differently and has their own names for everything. Pip tends to set things down unless you tell them to hold on tight.",
+        "comprehension": "standard",
+        "perception_quirks": [
+          {
+            "type": "own_vocabulary",
+            "config": {
+              "vocabulary_map": {
+                "entries": [
+                  { "word": "Ruby", "replacement": "sparkle" },
+                  { "word": "Sapphire", "replacement": "shimmer" },
+                  { "word": "Stone Pedestal", "replacement": "stone throne" },
+                  { "word": "Exit", "replacement": "bright doorway" }
+                ]
+              }
+            }
+          }
+        ],
+        "personality_quirks": [
+          {
+            "type": "forgetful",
+            "config": {
+              "refusal_response": "Oh, I put it down. Did you want me to carry it? You have to tell me to hold onto things!"
+            }
+          }
+        ],
+        "direction_mode": "absolute"
+      }
     }
   ],
   "objectives": [
     { "type": "place_all_gems" },
     { "type": "reach_exit", "target_character": "explorer_1" }
   ],
-  "prompt_budget": 6,
+  "prompt_budget": 8,
   "prompt_max_length": 150,
   "par_score": 4,
   "hints": {

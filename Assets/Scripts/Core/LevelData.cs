@@ -227,11 +227,37 @@ namespace LostSouls.Core
     }
 
     [Serializable]
+    public class VocabularyEntry
+    {
+        public string word;        // real name: "Ruby", "Pedestal"
+        public string replacement; // character's name: "sparkle", "stone throne"
+    }
+
+    [Serializable]
     public class VocabularyMap
     {
-        // Unity's JsonUtility doesn't handle Dictionary well,
-        // so we'll use a custom approach for vocabulary mapping
-        // This will be handled specially in code
+        public List<VocabularyEntry> entries;
+
+        public string GetReplacement(string word)
+        {
+            if (entries == null) return word;
+            var entry = entries.Find(e =>
+                string.Equals(e.word, word, StringComparison.OrdinalIgnoreCase));
+            return entry?.replacement ?? word;
+        }
+
+        public string GetOriginal(string replacement)
+        {
+            if (entries == null) return replacement;
+            var entry = entries.Find(e =>
+                string.Equals(e.replacement, replacement, StringComparison.OrdinalIgnoreCase));
+            return entry?.word ?? replacement;
+        }
+
+        public bool HasEntries()
+        {
+            return entries != null && entries.Count > 0;
+        }
     }
 
     [Serializable]

@@ -1,38 +1,45 @@
 {
   "level_id": 4,
-  "title": "Push It",
-  "description": "Push the box onto the pressure plate to open the door.",
+  "title": "Push and Shove",
+  "description": "Push the box onto the pressure plate. Only absolute directions, one move at a time.",
   "grid": {
     "width": 6,
-    "height": 4,
+    "height": 5,
     "tiles": [
-      { "x": 0, "y": 0, "type": "floor" },
+      { "x": 0, "y": 0, "type": "wall" },
       { "x": 1, "y": 0, "type": "floor" },
       { "x": 2, "y": 0, "type": "floor" },
       { "x": 3, "y": 0, "type": "floor" },
       { "x": 4, "y": 0, "type": "floor" },
-      { "x": 5, "y": 0, "type": "wall" },
+      { "x": 5, "y": 0, "type": "door" },
 
-      { "x": 0, "y": 1, "type": "floor" },
+      { "x": 0, "y": 1, "type": "wall" },
       { "x": 1, "y": 1, "type": "floor" },
-      { "x": 2, "y": 1, "type": "pressure_plate" },
-      { "x": 3, "y": 1, "type": "floor" },
+      { "x": 2, "y": 1, "type": "floor" },
+      { "x": 3, "y": 1, "type": "pressure_plate" },
       { "x": 4, "y": 1, "type": "floor" },
-      { "x": 5, "y": 1, "type": "door" },
+      { "x": 5, "y": 1, "type": "wall" },
 
-      { "x": 0, "y": 2, "type": "floor" },
+      { "x": 0, "y": 2, "type": "wall" },
       { "x": 1, "y": 2, "type": "floor" },
-      { "x": 2, "y": 2, "type": "floor" },
+      { "x": 2, "y": 2, "type": "wall" },
       { "x": 3, "y": 2, "type": "floor" },
-      { "x": 4, "y": 2, "type": "wall" },
+      { "x": 4, "y": 2, "type": "floor" },
       { "x": 5, "y": 2, "type": "wall" },
 
       { "x": 0, "y": 3, "type": "wall" },
-      { "x": 1, "y": 3, "type": "wall" },
-      { "x": 2, "y": 3, "type": "wall" },
-      { "x": 3, "y": 3, "type": "wall" },
-      { "x": 4, "y": 3, "type": "wall" },
-      { "x": 5, "y": 3, "type": "wall" }
+      { "x": 1, "y": 3, "type": "floor" },
+      { "x": 2, "y": 3, "type": "floor" },
+      { "x": 3, "y": 3, "type": "floor" },
+      { "x": 4, "y": 3, "type": "floor" },
+      { "x": 5, "y": 3, "type": "wall" },
+
+      { "x": 0, "y": 4, "type": "wall" },
+      { "x": 1, "y": 4, "type": "wall" },
+      { "x": 2, "y": 4, "type": "wall" },
+      { "x": 3, "y": 4, "type": "wall" },
+      { "x": 4, "y": 4, "type": "wall" },
+      { "x": 5, "y": 4, "type": "wall" }
     ]
   },
   "objects": [
@@ -40,7 +47,7 @@
       "id": "box_1",
       "type": "box",
       "display_name": "Wooden Box",
-      "position": { "x": 2, "y": 0 },
+      "position": { "x": 2, "y": 3 },
       "properties": {
         "size": "medium",
         "weight": 1.0
@@ -50,16 +57,16 @@
       "id": "plate_1",
       "type": "pressure_plate",
       "display_name": "Stone Plate",
-      "position": { "x": 2, "y": 1 },
+      "position": { "x": 3, "y": 1 },
       "properties": {
-        "linked_object_id": "door_east"
+        "linked_object_id": "door_exit"
       }
     },
     {
-      "id": "door_east",
+      "id": "door_exit",
       "type": "door",
-      "display_name": "Eastern Door",
-      "position": { "x": 5, "y": 1 },
+      "display_name": "Exit Door",
+      "position": { "x": 5, "y": 0 },
       "properties": {
         "state": "closed"
       }
@@ -68,17 +75,26 @@
   "characters": [
     {
       "id": "explorer_1",
-      "name": "Sage",
-      "position": { "x": 0, "y": 0 },
-      "profile_id": "sage_profile"
+      "name": "Grit",
+      "position": { "x": 1, "y": 0 },
+      "profile_id": "grit_simple",
+      "profile": {
+        "profile_id": "grit_simple",
+        "name": "Grit",
+        "bio": "Grit knows up, down, left, right. No fancy navigation. One step, one push at a time. Grit is strong but simple.",
+        "comprehension": "simple",
+        "perception_quirks": [],
+        "personality_quirks": [],
+        "direction_mode": "absolute"
+      }
     }
   ],
   "objectives": [
     { "type": "reach_exit", "target_character": "explorer_1" }
   ],
-  "prompt_budget": 8,
+  "prompt_budget": 16,
   "prompt_max_length": 150,
-  "par_score": 3,
+  "par_score": 13,
   "hints": {
     "bio_visible": true,
     "observation_cost": 1

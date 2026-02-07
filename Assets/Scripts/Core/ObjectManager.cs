@@ -51,6 +51,11 @@ namespace LostSouls.Core
             allObjects.Remove(obj);
         }
 
+        public List<GridObject> GetAllObjects()
+        {
+            return allObjects;
+        }
+
         public GridObject GetObject(string id)
         {
             if (string.IsNullOrEmpty(id)) return null;

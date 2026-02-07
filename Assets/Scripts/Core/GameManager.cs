@@ -26,6 +26,7 @@ namespace LostSouls.Core
         [SerializeField] private Pathfinding pathfinding;
         [SerializeField] private CameraController cameraController;
         [SerializeField] private ObjectManager objectManager;
+        [SerializeField] private TurnManager turnManager;
 
         [Header("Game State")]
         [SerializeField] private GameState currentState = GameState.Loading;
@@ -95,6 +96,8 @@ namespace LostSouls.Core
                 cameraController = FindObjectOfType<CameraController>();
             if (objectManager == null)
                 objectManager = FindObjectOfType<ObjectManager>();
+            if (turnManager == null)
+                turnManager = FindObjectOfType<TurnManager>();
 
             // Subscribe to object manager events
             if (objectManager != null)

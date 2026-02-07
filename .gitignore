@@ -73,6 +73,7 @@ crashlytics-build.properties
 # API Configuration (contains sensitive API keys)
 api_config.json
 Assets/Resources/api_config.json
+Assets/Resources/api_config.json.meta
 
 # OS generated files
 .DS_Store
