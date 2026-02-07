@@ -1,8 +1,9 @@
-using System;
-using UnityEngine;
+using Assets.Scripts.Core;
+using LostSouls.Character;
 using LostSouls.Core;
 using LostSouls.Grid;
-using LostSouls.Character;
+using System;
+using UnityEngine;
 
 namespace LostSouls.Objects
 {
@@ -58,8 +59,18 @@ namespace LostSouls.Objects
         public virtual bool BlocksMovement() => false;
 
         // Interaction callbacks — override in subclasses
-        public virtual void OnPickedUp(ExplorerController character) { }
-        public virtual void OnPutDown(Vector2Int position) { }
+        public virtual void OnPickedUp(ExplorerController character)
+        {
+            // Play pick-up sound at the character's position
+            GlobalAudio.PlayItemPickUp(character.transform.position);
+        }
+
+        public virtual void OnPutDown(Vector2Int position)
+        {
+            // Convert grid position to world position if needed
+            Vector3 worldPos = new Vector3(position.x, 0, position.y);
+            GlobalAudio.PlayItemPutDown(worldPos);
+        }
         public virtual bool OnItemUsed(GridObject item, ExplorerController character) => false;
         public virtual void OnPushed(Vector2Int pushDirection, Vector2Int newPosition) { }
         public virtual void OnCharacterEntered(ExplorerController character) { }

@@ -6,25 +6,25 @@
     "width": 5,
     "height": 5,
     "tiles": [
-      { "x": 0, "y": 0, "type": "wall" },
+      { "x": 0, "y": 0, "type": "floor" },
       { "x": 1, "y": 0, "type": "floor" },
       { "x": 2, "y": 0, "type": "floor" },
       { "x": 3, "y": 0, "type": "floor" },
       { "x": 4, "y": 0, "type": "exit" },
 
-      { "x": 0, "y": 1, "type": "wall" },
+      { "x": 0, "y": 1, "type": "floor" },
       { "x": 1, "y": 1, "type": "floor" },
       { "x": 2, "y": 1, "type": "floor" },
       { "x": 3, "y": 1, "type": "floor" },
       { "x": 4, "y": 1, "type": "wall" },
 
-      { "x": 0, "y": 2, "type": "wall" },
+      { "x": 0, "y": 2, "type": "floor" },
       { "x": 1, "y": 2, "type": "floor" },
       { "x": 2, "y": 2, "type": "floor" },
       { "x": 3, "y": 2, "type": "floor" },
       { "x": 4, "y": 2, "type": "wall" },
 
-      { "x": 0, "y": 3, "type": "wall" },
+      { "x": 0, "y": 3, "type": "floor" },
       { "x": 1, "y": 3, "type": "floor" },
       { "x": 2, "y": 3, "type": "floor" },
       { "x": 3, "y": 3, "type": "floor" },
@@ -78,12 +78,13 @@
     {
       "id": "explorer_1",
       "name": "Pip",
-      "position": { "x": 1, "y": 0 },
+      "position": { "x": 0, "y": 0 },
       "profile_id": "pip_vocabulary",
       "profile": {
         "profile_id": "pip_vocabulary",
         "name": "Pip",
         "bio": "Pip sees the world differently and has their own names for everything. Pip tends to set things down unless you tell them to hold on tight.",
+        "model_prefab": "character6",
         "comprehension": "standard",
         "perception_quirks": [
           {

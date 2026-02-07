@@ -6,19 +6,19 @@
     "width": 5,
     "height": 4,
     "tiles": [
-      { "x": 0, "y": 0, "type": "wall" },
+      { "x": 0, "y": 0, "type": "floor" },
       { "x": 1, "y": 0, "type": "floor" },
       { "x": 2, "y": 0, "type": "floor" },
       { "x": 3, "y": 0, "type": "floor" },
       { "x": 4, "y": 0, "type": "wall" },
 
-      { "x": 0, "y": 1, "type": "wall" },
+      { "x": 0, "y": 1, "type": "floor" },
       { "x": 1, "y": 1, "type": "floor" },
       { "x": 2, "y": 1, "type": "floor" },
       { "x": 3, "y": 1, "type": "floor" },
       { "x": 4, "y": 1, "type": "door" },
 
-      { "x": 0, "y": 2, "type": "wall" },
+      { "x": 0, "y": 2, "type": "floor" },
       { "x": 1, "y": 2, "type": "floor" },
       { "x": 2, "y": 2, "type": "floor" },
       { "x": 3, "y": 2, "type": "floor" },
@@ -60,12 +60,13 @@
     {
       "id": "explorer_1",
       "name": "Fern",
-      "position": { "x": 2, "y": 0 },
+      "position": { "x": 0, "y": 0 },
       "profile_id": "fern_polite",
       "profile": {
         "profile_id": "fern_polite",
         "name": "Fern",
         "bio": "Fern was raised in the garden district, where manners matter more than maps. Treat Fern well and you'll find a willing helper.",
+        "model_prefab": "character7",
         "comprehension": "standard",
         "perception_quirks": [],
         "personality_quirks": [

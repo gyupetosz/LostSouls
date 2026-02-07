@@ -1,8 +1,9 @@
-using System.Collections;
-using UnityEngine;
+using Assets.Scripts.Core;
+using LostSouls.Character;
 using LostSouls.Core;
 using LostSouls.Grid;
-using LostSouls.Character;
+using System.Collections;
+using UnityEngine;
 
 namespace LostSouls.Objects
 {
@@ -10,7 +11,7 @@ namespace LostSouls.Objects
     {
         [Header("Box Properties")]
         [SerializeField] private float weight = 1f;
-        [SerializeField] private float pushAnimDuration = 0.6f;
+        [SerializeField] private float pushAnimDuration = 1.5f;
         [SerializeField] private bool isBeingPushed;
 
         public float Weight => weight;
@@ -71,6 +72,8 @@ namespace LostSouls.Objects
 
             // Animate the push
             StartCoroutine(AnimatePush(newPosition));
+
+            GlobalAudio.PlayBoxPushing(transform.position);
 
             // Notify old pressure plate
             if (oldPlate != null)

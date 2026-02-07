@@ -1,8 +1,9 @@
-using System;
-using UnityEngine;
+using Assets.Scripts.Core;
+using LostSouls.Character;
 using LostSouls.Core;
 using LostSouls.Grid;
-using LostSouls.Character;
+using System;
+using UnityEngine;
 
 namespace LostSouls.Objects
 {
@@ -58,6 +59,8 @@ namespace LostSouls.Objects
             activated = true;
 
             Debug.Log($"Pressure plate '{displayName}' activated!");
+            GlobalAudio.PlayPressurePlateGround(transform.position);
+
             TriggerLinkedObject(true);
             NotifyStateChanged();
             OnActivationChanged?.Invoke(this, true);

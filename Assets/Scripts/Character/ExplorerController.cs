@@ -36,6 +36,9 @@ namespace LostSouls.Character
         public event Action OnMovementStarted;
         public event Action OnMovementCompleted;
         public event Action<Vector2Int> OnReachedExit;
+        public event Action OnPickedUpObject;
+        public event Action OnPutDownObject;
+        public event Action OnPushStarted;
 
         // Properties
         public Vector2Int GridPosition => currentGridPosition;
@@ -246,6 +249,7 @@ namespace LostSouls.Character
 
             heldGridObject = obj;
             obj.OnPickedUp(this);
+            OnPickedUpObject?.Invoke();
             Debug.Log($"Picked up: {obj.DisplayName}");
             return true;
         }
@@ -264,6 +268,7 @@ namespace LostSouls.Character
             GridObject obj = heldGridObject;
             heldGridObject = null;
             obj.OnPutDown(currentGridPosition);
+            OnPutDownObject?.Invoke();
             Debug.Log($"Put down: {obj.DisplayName} at {currentGridPosition}");
             return obj;
         }
@@ -274,6 +279,7 @@ namespace LostSouls.Character
         public void ClearHeldObject()
         {
             heldGridObject = null;
+            OnPutDownObject?.Invoke();
         }
 
         /// <summary>
@@ -351,6 +357,7 @@ namespace LostSouls.Character
             Vector2Int newBoxPos = currentGridPosition + pushDir;
 
             // Start the push sequence: animate character to position, then push box
+            OnPushStarted?.Invoke();
             StartCoroutine(PushBoxSequence(box, direction, pushDir, newBoxPos));
             return true;
         }

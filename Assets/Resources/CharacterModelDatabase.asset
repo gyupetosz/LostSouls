@@ -1,0 +1,127 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15181ee7beba0264fa91b1f576ec95b6, type: 3}
+  m_Name: CharacterModelDatabase
+  m_EditorClassIdentifier: 
+  entries:
+  - modelId: character1
+    modelPrefab: {fileID: 919132149155446097, guid: 8c0453b261482cf41bc87048dcded1c2,
+      type: 3}
+    texture: {fileID: 2800000, guid: fa2207b171959ef4a94b712e97e564f8, type: 3}
+    idle: {fileID: 1827226128182048838, guid: e68c2d2675d3aa6469a93a10330a92d4, type: 3}
+    walk: {fileID: 1827226128182048838, guid: d15cbfd52fa089f4caa522a7491b7f8f, type: 3}
+    pick: {fileID: 1827226128182048838, guid: b6807a86c980f4942a4c69c9bf55535a, type: 3}
+    push: {fileID: 1827226128182048838, guid: f28ac68466a51254c946570bf5e6028a, type: 3}
+    pushIdle: {fileID: 1827226128182048838, guid: 1566f65c32e737e47927b4da78045dc8,
+      type: 3}
+    holdIdle: {fileID: 1827226128182048838, guid: 00fd65ffc676fb64986026b50958f753,
+      type: 3}
+    holdWalk: {fileID: 1827226128182048838, guid: 4c69777be8f5a9f44b8e32081389a8ac,
+      type: 3}
+  - modelId: character2
+    modelPrefab: {fileID: 919132149155446097, guid: 086cdde0d8f3b474c81d4a2ca405e98a,
+      type: 3}
+    texture: {fileID: 2800000, guid: 7d4fb40f998c37f46a0f364f34ece2c8, type: 3}
+    idle: {fileID: 1827226128182048838, guid: 3f27be6ec15cef8408d87784a7052eab, type: 3}
+    walk: {fileID: 1827226128182048838, guid: 2971b543001f5ae409d7d68a0d0a9092, type: 3}
+    pick: {fileID: 1827226128182048838, guid: de31722608371244fb29e13cf86ffbac, type: 3}
+    push: {fileID: 1827226128182048838, guid: 6861e9528647e32498c285583ab3bcc9, type: 3}
+    pushIdle: {fileID: 1827226128182048838, guid: a4d372c3dcd97704abf6233a1b6e77f8,
+      type: 3}
+    holdIdle: {fileID: 1827226128182048838, guid: 30c0dc6b3a68a0344a52519625ea7db2,
+      type: 3}
+    holdWalk: {fileID: 1827226128182048838, guid: b4203127e14dc1e4f8548986ff763ca7,
+      type: 3}
+  - modelId: character3
+    modelPrefab: {fileID: 919132149155446097, guid: f00313c2580747d4ebefbe8fbb97d42c,
+      type: 3}
+    texture: {fileID: 2800000, guid: 64e4d0eac9c219245888b6b7e98baa1c, type: 3}
+    idle: {fileID: 1827226128182048838, guid: 29dfb8d0e0108c64babd681ad1856f29, type: 3}
+    walk: {fileID: 1827226128182048838, guid: ee012a6b465afb14f81c6d4110d219f3, type: 3}
+    pick: {fileID: 1827226128182048838, guid: 11b223b99031c3c4e9779ea93d05726a, type: 3}
+    push: {fileID: 1827226128182048838, guid: cd5a1c39eeec62a479df0f9ef8cb1ffa, type: 3}
+    pushIdle: {fileID: 1827226128182048838, guid: 71b99799992a5ec48808dd3e728c2f85,
+      type: 3}
+    holdIdle: {fileID: 1827226128182048838, guid: 00271c678ffa4ee40b86e83a2c1e0cde,
+      type: 3}
+    holdWalk: {fileID: 1827226128182048838, guid: f9255b6859dec844388dc2f4eed7c7ca,
+      type: 3}
+  - modelId: character5
+    modelPrefab: {fileID: 919132149155446097, guid: 9f65c42db770e7d449f711533595ced2,
+      type: 3}
+    texture: {fileID: 2800000, guid: 7ba3a542c82e98342a091ba9824a47de, type: 3}
+    idle: {fileID: 1827226128182048838, guid: b722b20c689905b43aa00dd817a40220, type: 3}
+    walk: {fileID: 1827226128182048838, guid: 0891189506feca341bebc7bde8a46361, type: 3}
+    pick: {fileID: 1827226128182048838, guid: 97b86d625e32d69439eee3a0b574a2bd, type: 3}
+    push: {fileID: 1827226128182048838, guid: 9120741815487db45a1fc7d4a40db1c9, type: 3}
+    pushIdle: {fileID: 1827226128182048838, guid: aa350883d0afad34d9989e1fca9ca2be,
+      type: 3}
+    holdIdle: {fileID: 1827226128182048838, guid: 7ed9158a577c6504a80e20f87e39d437,
+      type: 3}
+    holdWalk: {fileID: 1827226128182048838, guid: 8ded34c5ad2dbfe459a105dde0bbaf30,
+      type: 3}
+  - modelId: character6
+    modelPrefab: {fileID: 919132149155446097, guid: 7cc3e9541bfa3da4a87bf8722c2ffdbb,
+      type: 3}
+    texture: {fileID: 2800000, guid: b0ea69cb240fac741b55ec7084de6b28, type: 3}
+    idle: {fileID: 1827226128182048838, guid: 0d02042d344456943b33426a764ac0aa, type: 3}
+    walk: {fileID: 1827226128182048838, guid: 39d3c7024fc34d84b9aa6b2409cee680, type: 3}
+    pick: {fileID: 1827226128182048838, guid: 6dd5f1204146bb64384b9ffa5efd3d4c, type: 3}
+    push: {fileID: 1827226128182048838, guid: 045075d852c2bbd44aa618a671c070db, type: 3}
+    pushIdle: {fileID: 1827226128182048838, guid: 4e477df5bbbec584fae3715c6668f355,
+      type: 3}
+    holdIdle: {fileID: 1827226128182048838, guid: 91229ce413042a0428de7fc623caff67,
+      type: 3}
+    holdWalk: {fileID: 1827226128182048838, guid: 4979ee8591580af469c756176fd4d945,
+      type: 3}
+  - modelId: character7
+    modelPrefab: {fileID: 919132149155446097, guid: d5a4ca4ec9f72eb40bd1a2df2c1efbc6,
+      type: 3}
+    texture: {fileID: 2800000, guid: a69230adf8e8a034288b0ec6ac414e08, type: 3}
+    idle: {fileID: 1827226128182048838, guid: 2991fb900335fb546945dc2a1fd658e5, type: 3}
+    walk: {fileID: 1827226128182048838, guid: d161ebfe60fcdd34e83fdeba9d3ba991, type: 3}
+    pick: {fileID: 1827226128182048838, guid: a8b2ba0e64dab9f4a92e8c5a6c0bd006, type: 3}
+    push: {fileID: 1827226128182048838, guid: 1b35479204378a444825d8648aeaa0b9, type: 3}
+    pushIdle: {fileID: 1827226128182048838, guid: 6a81d22bfdbf91149b05f3581676f52a,
+      type: 3}
+    holdIdle: {fileID: 1827226128182048838, guid: 4cd6332f437e90349acfe39b4466d15a,
+      type: 3}
+    holdWalk: {fileID: 1827226128182048838, guid: 23979f0a17ebd8044948066a26a19ed1,
+      type: 3}
+  - modelId: character8
+    modelPrefab: {fileID: 919132149155446097, guid: 2ca773380245bf544bbbd08859e3f630,
+      type: 3}
+    texture: {fileID: 2800000, guid: b92d21bd815afd649bcc9e63d5a4a874, type: 3}
+    idle: {fileID: 1827226128182048838, guid: bd6d386cf402cf54aa191feb05e00abd, type: 3}
+    walk: {fileID: 1827226128182048838, guid: d1f9b7c7bc1a6924d971fb0f8dec8c9e, type: 3}
+    pick: {fileID: 1827226128182048838, guid: c859719c606136449ace90c5f1f01e2d, type: 3}
+    push: {fileID: 1827226128182048838, guid: c812c150bb9744d4e8262e501c4672df, type: 3}
+    pushIdle: {fileID: 1827226128182048838, guid: a291f645610c0e248b6bf85bb0b25a39,
+      type: 3}
+    holdIdle: {fileID: 1827226128182048838, guid: 79c91fbaecc07ac4dad87386cb3585c1,
+      type: 3}
+    holdWalk: {fileID: 1827226128182048838, guid: 82a005c18e2d19740a311ceaff1f2819,
+      type: 3}
+  - modelId: character9
+    modelPrefab: {fileID: 919132149155446097, guid: 7d5367d51967aa447845518dee3c053c,
+      type: 3}
+    texture: {fileID: 2800000, guid: e2aa8c00e4e50354ebd41907d589659c, type: 3}
+    idle: {fileID: 1827226128182048838, guid: 9e498f8b36e45b3478f0c801c6c92cd0, type: 3}
+    walk: {fileID: 1827226128182048838, guid: 87d7f2ac8f8db2e4bb96a1ffb3c58589, type: 3}
+    pick: {fileID: 1827226128182048838, guid: 607b12743ab77db4bae71ce2527b2f5d, type: 3}
+    push: {fileID: 1827226128182048838, guid: 45c9ffb2f6cf3a1489f82d9dfe14a885, type: 3}
+    pushIdle: {fileID: 1827226128182048838, guid: 137ffdcf75f94d14bb52198a14c1dc55,
+      type: 3}
+    holdIdle: {fileID: 1827226128182048838, guid: de585c843d2bd614d953674c0bc93fca,
+      type: 3}
+    holdWalk: {fileID: 1827226128182048838, guid: 42448be27267dd44080881a2f2ed671d,
+      type: 3}

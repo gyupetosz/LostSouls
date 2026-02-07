@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -9,26 +10,35 @@ namespace LostSouls.UI
     {
         [Header("UI References")]
         [SerializeField] private TextMeshProUGUI energyText;
+        [SerializeField] private TextMeshProUGUI labelText;
         [SerializeField] private Image fillBar;
-        [SerializeField] private GameObject pipContainer;
-        [SerializeField] private GameObject pipPrefab;
+        [SerializeField] private Image fillBackground;
 
         [Header("Colors")]
-        [SerializeField] private Color normalColor = Color.cyan;
-        [SerializeField] private Color warningColor = Color.yellow;
-        [SerializeField] private Color criticalColor = Color.red;
+        [SerializeField] private Color normalColor = new Color(0f, 0.8f, 1f);
+        [SerializeField] private Color warningColor = new Color(1f, 0.8f, 0f);
+        [SerializeField] private Color criticalColor = new Color(1f, 0.2f, 0.2f);
 
         private GameManager gameManager;
-        private Image[] pips;
+        private bool subscribed;
 
-        private void Start()
+        private IEnumerator Start()
         {
-            gameManager = GameManager.Instance;
-
-            if (gameManager != null)
+            // Wait until GameManager singleton is available
+            while (GameManager.Instance == null)
             {
-                gameManager.OnPromptUsed += UpdateEnergy;
-                gameManager.OnLevelStarted += OnLevelStarted;
+                yield return null;
+            }
+
+            gameManager = GameManager.Instance;
+            gameManager.OnPromptUsed += UpdateEnergy;
+            gameManager.OnLevelStarted += OnLevelStarted;
+            subscribed = true;
+
+            // If a level is already loaded, show current state
+            if (gameManager.CurrentState == GameState.Playing)
+            {
+                UpdateDisplay(gameManager.PromptBudget, gameManager.PromptsRemaining);
             }
         }
 
@@ -44,18 +54,17 @@ namespace LostSouls.UI
 
         private void UpdateDisplay(int budget, int remaining)
         {
-            // Update text
+            // Update counter text
             if (energyText != null)
             {
-                energyText.text = $"{remaining}/{budget}";
+                energyText.text = $"{remaining} / {budget}";
+                energyText.color = GetStateColor(budget, remaining);
+            }
 
-                // Color based on remaining
-                if (remaining <= 1)
-                    energyText.color = criticalColor;
-                else if (remaining <= budget * 0.3f)
-                    energyText.color = warningColor;
-                else
-                    energyText.color = normalColor;
+            // Update label
+            if (labelText != null)
+            {
+                labelText.text = "ENERGY";
             }
 
             // Update fill bar
@@ -63,19 +72,22 @@ namespace LostSouls.UI
             {
                 float fill = budget > 0 ? (float)remaining / budget : 0f;
                 fillBar.fillAmount = fill;
-
-                if (remaining <= 1)
-                    fillBar.color = criticalColor;
-                else if (remaining <= budget * 0.3f)
-                    fillBar.color = warningColor;
-                else
-                    fillBar.color = normalColor;
+                fillBar.color = GetStateColor(budget, remaining);
             }
+        }
+
+        private Color GetStateColor(int budget, int remaining)
+        {
+            if (remaining <= 1)
+                return criticalColor;
+            if (remaining <= budget * 0.3f)
+                return warningColor;
+            return normalColor;
         }
 
         private void OnDestroy()
         {
-            if (gameManager != null)
+            if (subscribed && gameManager != null)
             {
                 gameManager.OnPromptUsed -= UpdateEnergy;
                 gameManager.OnLevelStarted -= OnLevelStarted;

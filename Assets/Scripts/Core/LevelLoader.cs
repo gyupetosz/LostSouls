@@ -22,6 +22,9 @@ namespace LostSouls.Core
         [SerializeField] private GameObject[] gemPrefabs;
         [SerializeField] private GameObject pedestalPrefab;
 
+        [Header("Character Models")]
+        [SerializeField] private CharacterModelDatabase characterModelDatabase;
+
         [Header("Object Settings")]
         [SerializeField] private float keyYOffset = 0.5f;
         [SerializeField] private float gemYOffset = 0.6f;
@@ -302,6 +305,29 @@ namespace LostSouls.Core
             }
 
             explorer.Initialize(charData.id, charData.name, gridPos, gridManager, pathfinding);
+
+            // Load character model if model_prefab is specified
+            string modelId = charData.profile?.model_prefab;
+            if (!string.IsNullOrEmpty(modelId))
+            {
+                // Load database from Resources if not set
+                if (characterModelDatabase == null)
+                    characterModelDatabase = Resources.Load<CharacterModelDatabase>("CharacterModelDatabase");
+
+                if (characterModelDatabase != null)
+                {
+                    CharacterModelManager modelManager = charObj.GetComponent<CharacterModelManager>();
+                    if (modelManager == null)
+                        modelManager = charObj.AddComponent<CharacterModelManager>();
+
+                    modelManager.Initialize(characterModelDatabase, explorer);
+                    modelManager.LoadModel(modelId);
+                }
+                else
+                {
+                    Debug.LogWarning($"CharacterModelDatabase not found. Run 'Lost Souls/Build Character Database' first.");
+                }
+            }
 
             // Store reference to first character as main character
             if (currentCharacter == null)

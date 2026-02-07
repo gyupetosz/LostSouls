@@ -134,17 +134,60 @@ namespace LostSouls.LLM
                 return action;
             }
 
-            GridObject target = objects.GetPickableObjectNear(character.GridPosition);
-            if (target == null)
+            // Check if there's a pickable object right next to the character
+            GridObject nearby = objects.GetPickableObjectNear(character.GridPosition);
+            if (nearby != null)
             {
-                action.dialogue += " I don't see anything I can pick up nearby.";
-                action.type = ActionType.None;
+                action.targetObjectId = nearby.ObjectId;
                 return action;
             }
 
-            // Set the resolved target ID for the executor
-            action.targetObjectId = target.ObjectId;
+            // Not nearby — try to find the named target somewhere on the grid
+            // The executor will handle moving there first if comprehension allows pathfinding
+            if (!string.IsNullOrEmpty(action.targetObjectId))
+            {
+                GridObject target = FindObjectByNameOrId(action.targetObjectId, objects);
+                if (target != null && target.CanPickUp())
+                {
+                    action.targetObjectId = target.ObjectId;
+                    // Mark that we need to walk there first (executor checks this)
+                    return action;
+                }
+            }
+
+            action.dialogue += " I don't see anything I can pick up nearby.";
+            action.type = ActionType.None;
             return action;
+        }
+
+        /// <summary>
+        /// Fuzzy lookup: tries exact ID, then display name match.
+        /// </summary>
+        private static GridObject FindObjectByNameOrId(string nameOrId, ObjectManager objects)
+        {
+            if (string.IsNullOrEmpty(nameOrId)) return null;
+
+            // Exact ID
+            GridObject obj = objects.GetObject(nameOrId);
+            if (obj != null) return obj;
+
+            // Fuzzy name match
+            string lower = nameOrId.ToLower();
+            var all = objects.GetAllObjects();
+            if (all == null) return null;
+
+            foreach (var o in all)
+            {
+                if (o == null) continue;
+                string display = o.DisplayName?.ToLower() ?? "";
+                string id = o.ObjectId?.ToLower() ?? "";
+                if (display.Contains(lower) || lower.Contains(display) ||
+                    id.Contains(lower) || lower.Contains(id))
+                {
+                    return o;
+                }
+            }
+            return null;
         }
 
         private static CharacterAction ValidatePutDown(
@@ -170,14 +213,43 @@ namespace LostSouls.LLM
                 return action;
             }
 
-            GridObject target = objects.GetInteractableObjectNear(character.GridPosition);
-            if (target == null)
+            GridObject heldObject = character.HeldGridObject;
+
+            // Check nearby first (skip the object we're holding)
+            GridObject nearbyTarget = objects.GetInteractableObjectNear(character.GridPosition);
+            if (nearbyTarget != null && nearbyTarget != heldObject)
             {
-                action.dialogue += " I don't see anything nearby to use this on.";
-                action.type = ActionType.None;
+                action.useOnTarget = nearbyTarget.ObjectId;
                 return action;
             }
 
+            // Not nearby — try finding the named target (executor will move there)
+            if (!string.IsNullOrEmpty(action.useOnTarget))
+            {
+                GridObject target = FindObjectByNameOrId(action.useOnTarget, objects);
+                if (target != null && target != heldObject)
+                {
+                    action.useOnTarget = target.ObjectId;
+                    return action;
+                }
+            }
+
+            // Also check if there's a door anywhere (common "use key on door" scenario)
+            var allObjects = objects.GetAllObjects();
+            if (allObjects != null)
+            {
+                foreach (var o in allObjects)
+                {
+                    if (o is DoorObject)
+                    {
+                        action.useOnTarget = o.ObjectId;
+                        return action;
+                    }
+                }
+            }
+
+            action.dialogue += " I don't see anything nearby to use this on.";
+            action.type = ActionType.None;
             return action;
         }
 
@@ -215,22 +287,50 @@ namespace LostSouls.LLM
         private static CharacterAction ValidateOpenClose(
             CharacterAction action, ExplorerController character, ObjectManager objects)
         {
-            GridObject target = objects.GetInteractableObjectNear(character.GridPosition);
-            if (target == null || !(target is DoorObject))
+            // Find a door — nearby first, then anywhere
+            DoorObject door = null;
+
+            GridObject nearby = objects.GetInteractableObjectNear(character.GridPosition);
+            if (nearby is DoorObject nearbyDoor)
             {
-                action.dialogue += " I don't see a door nearby.";
+                door = nearbyDoor;
+            }
+            else
+            {
+                // Search all objects for a door (executor will move there)
+                var allObjects = objects.GetAllObjects();
+                if (allObjects != null)
+                {
+                    foreach (var o in allObjects)
+                    {
+                        if (o is DoorObject d) { door = d; break; }
+                    }
+                }
+            }
+
+            if (door == null)
+            {
+                action.dialogue += " I don't see a door.";
                 action.type = ActionType.None;
                 return action;
             }
 
-            DoorObject door = target as DoorObject;
+            // If locked but holding the right key, convert to Use action
             if (door.DoorState == DoorState.Locked)
             {
+                if (character.IsHoldingObject && character.HeldGridObject is KeyObject)
+                {
+                    action.type = ActionType.Use;
+                    action.useOnTarget = door.ObjectId;
+                    return action;
+                }
+
                 action.dialogue += " It's locked. I need something to unlock it.";
                 action.type = ActionType.None;
                 return action;
             }
 
+            action.useOnTarget = door.ObjectId;
             return action;
         }
 

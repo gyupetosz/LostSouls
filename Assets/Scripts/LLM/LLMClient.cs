@@ -21,6 +21,13 @@ namespace LostSouls.LLM
         public void SendMessage(string systemPrompt, string userMessage,
             Action<string> onResponse, Action<string> onError)
         {
+            // Retry loading config if it failed on Awake (e.g. key was added after startup)
+            if (config == null || !config.IsValid())
+            {
+                LLMConfig.ClearCache();
+                config = LLMConfig.Load();
+            }
+
             if (config == null || !config.IsValid())
             {
                 onError?.Invoke("API key not configured. Edit Assets/Resources/api_config.json.");

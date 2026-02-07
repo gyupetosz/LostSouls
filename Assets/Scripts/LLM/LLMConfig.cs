@@ -15,12 +15,15 @@ namespace LostSouls.LLM
 
         public static LLMConfig Load()
         {
-            if (_instance != null) return _instance;
+            if (_instance != null && _instance.IsValid()) return _instance;
+
+            // Clear stale cache so we always re-read from disk
+            _instance = null;
 
             TextAsset configAsset = Resources.Load<TextAsset>("api_config");
             if (configAsset == null)
             {
-                Debug.LogError("api_config.json not found in Resources/. Copy api_config.example.json to api_config.json and add your API key.");
+                Debug.LogWarning("api_config.json not found in Resources/. Copy api_config.example.json to api_config.json and add your API key.");
                 return null;
             }
 
@@ -28,11 +31,22 @@ namespace LostSouls.LLM
 
             if (string.IsNullOrEmpty(_instance.openai_api_key) || _instance.openai_api_key == "YOUR_API_KEY_HERE")
             {
-                Debug.LogError("OpenAI API key not configured. Edit Assets/Resources/api_config.json with your key.");
+                Debug.LogWarning("OpenAI API key not configured. Edit Assets/Resources/api_config.json with your key.");
+                _instance = null;
                 return null;
             }
 
+            Debug.Log($"LLM config loaded: model={_instance.model}");
             return _instance;
+        }
+
+        /// <summary>
+        /// Clears cached config so next Load() re-reads from disk.
+        /// Call this after editing api_config.json at runtime.
+        /// </summary>
+        public static void ClearCache()
+        {
+            _instance = null;
         }
 
         public bool IsValid()

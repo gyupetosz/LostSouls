@@ -60,7 +60,7 @@ namespace LostSouls.LLM
                     break;
 
                 case ActionType.PickUp:
-                    ExecutePickUp(action.targetObjectId);
+                    yield return ExecutePickUp(action.targetObjectId);
                     break;
 
                 case ActionType.PutDown:
@@ -68,7 +68,7 @@ namespace LostSouls.LLM
                     break;
 
                 case ActionType.Use:
-                    ExecuteUse(action.useOnTarget);
+                    yield return ExecuteUse(action.useOnTarget);
                     break;
 
                 case ActionType.Push:
@@ -76,7 +76,7 @@ namespace LostSouls.LLM
                     break;
 
                 case ActionType.OpenClose:
-                    ExecuteOpenClose();
+                    yield return ExecuteOpenClose(action.useOnTarget);
                     break;
             }
 
@@ -151,7 +151,7 @@ namespace LostSouls.LLM
             }
         }
 
-        private void ExecutePickUp(string targetId)
+        private IEnumerator ExecutePickUp(string targetId)
         {
             GridObject target = null;
 
@@ -167,25 +167,37 @@ namespace LostSouls.LLM
                 target = objects.GetPickableObjectNear(character.GridPosition);
             }
 
-            if (target != null)
+            if (target == null)
             {
-                // Check if it's a gem on a pedestal
-                if (target is GemObject gem)
+                Debug.LogWarning($"ActionExecutor: No target found for pick_up '{targetId}'");
+                yield break;
+            }
+
+            // If target is not adjacent, walk to it first
+            int dist = Mathf.Abs(target.GridPosition.x - character.GridPosition.x) +
+                       Mathf.Abs(target.GridPosition.y - character.GridPosition.y);
+            if (dist > 1)
+            {
+                Debug.Log($"ActionExecutor: Target '{targetId}' is {dist} tiles away, moving there first");
+                character.MoveTo(target.GridPosition);
+                while (character.IsMoving) yield return null;
+            }
+
+            // Check if it's a gem on a pedestal
+            if (target is GemObject gem)
+            {
+                var pedestals = objects.GetObjectsOfType<PedestalObject>();
+                foreach (var pedestal in pedestals)
                 {
-                    // Check if any nearby pedestal has this gem
-                    var pedestals = objects.GetObjectsOfType<PedestalObject>();
-                    foreach (var pedestal in pedestals)
+                    if (pedestal.HasGem && pedestal.PlacedGem == gem)
                     {
-                        if (pedestal.HasGem && pedestal.PlacedGem == gem)
-                        {
-                            pedestal.RemoveGem();
-                            break;
-                        }
+                        pedestal.RemoveGem();
+                        break;
                     }
                 }
-
-                character.PickUp(target);
             }
+
+            character.PickUp(target);
         }
 
         private void ExecutePutDown(string targetId)
@@ -215,22 +227,109 @@ namespace LostSouls.LLM
             character.PutDown();
         }
 
-        private void ExecuteUse(string useOnTarget)
+        private IEnumerator ExecuteUse(string useOnTarget)
         {
-            if (!character.IsHoldingObject) return;
+            if (!character.IsHoldingObject)
+            {
+                Debug.LogWarning("ActionExecutor: ExecuteUse — not holding anything");
+                yield break;
+            }
 
+            GridObject heldObject = character.HeldGridObject;
+            GridObject target = null;
+
+            // Try exact ID lookup
             if (!string.IsNullOrEmpty(useOnTarget))
             {
-                GridObject target = objects.GetObject(useOnTarget);
-                if (target != null)
+                target = objects.GetObject(useOnTarget);
+                // Don't use the held object on itself
+                if (target == heldObject) target = null;
+                Debug.Log($"ActionExecutor: Use target '{useOnTarget}' exact lookup: {(target != null ? "found" : "not found")}");
+            }
+
+            // Fuzzy lookup if exact failed
+            if (target == null && !string.IsNullOrEmpty(useOnTarget))
+            {
+                target = FuzzyFindObject(useOnTarget);
+                if (target == heldObject) target = null;
+                Debug.Log($"ActionExecutor: Use target '{useOnTarget}' fuzzy lookup: {(target != null ? target.ObjectId : "not found")}");
+            }
+
+            // Fallback: nearest interactable (skip the held object)
+            if (target == null)
+            {
+                target = objects.GetInteractableObjectNear(character.GridPosition);
+                if (target == heldObject) target = null;
+                Debug.Log($"ActionExecutor: Use fallback to nearest interactable: {(target != null ? target.ObjectId : "none")}");
+            }
+
+            // Last resort: find any door (common "use key on door" pattern)
+            if (target == null)
+            {
+                var allObjects = objects.GetAllObjects();
+                foreach (var o in allObjects)
                 {
-                    character.UseHeldObjectOn(target);
-                    return;
+                    if (o is DoorObject) { target = o; break; }
+                }
+                Debug.Log($"ActionExecutor: Use last-resort door search: {(target != null ? target.ObjectId : "none")}");
+            }
+
+            if (target == null)
+            {
+                Debug.LogWarning("ActionExecutor: ExecuteUse — no target found at all");
+                character.UseHeldObject();
+                yield break;
+            }
+
+            // If target is not adjacent, walk near it first
+            int dist = Mathf.Abs(target.GridPosition.x - character.GridPosition.x) +
+                       Mathf.Abs(target.GridPosition.y - character.GridPosition.y);
+            if (dist > 1)
+            {
+                Debug.Log($"ActionExecutor: Use target '{target.ObjectId}' is {dist} tiles away, moving there first");
+                var neighbors = grid.GetWalkableNeighbors(target.GridPosition);
+                if (neighbors.Count > 0)
+                {
+                    Vector2Int best = neighbors[0].GridPosition;
+                    int bestDist = Mathf.Abs(best.x - character.GridPosition.x) +
+                                   Mathf.Abs(best.y - character.GridPosition.y);
+                    foreach (var n in neighbors)
+                    {
+                        Vector2Int nPos = n.GridPosition;
+                        int d = Mathf.Abs(nPos.x - character.GridPosition.x) +
+                                Mathf.Abs(nPos.y - character.GridPosition.y);
+                        if (d < bestDist) { best = nPos; bestDist = d; }
+                    }
+                    character.MoveTo(best);
+                    while (character.IsMoving) yield return null;
                 }
             }
 
-            // Use on nearest interactable
-            character.UseHeldObject();
+            Debug.Log($"ActionExecutor: Using held object on '{target.ObjectId}'");
+            character.UseHeldObjectOn(target);
+        }
+
+        private GridObject FuzzyFindObject(string nameOrId)
+        {
+            if (string.IsNullOrEmpty(nameOrId)) return null;
+            string lower = nameOrId.ToLower();
+
+            var allObjects = objects.GetAllObjects();
+            if (allObjects == null) return null;
+
+            foreach (var o in allObjects)
+            {
+                if (o == null) continue;
+                string display = o.DisplayName?.ToLower() ?? "";
+                string id = o.ObjectId?.ToLower() ?? "";
+
+                if (display.Contains(lower) || lower.Contains(display) ||
+                    id.Contains(lower) || lower.Contains(id))
+                {
+                    return o;
+                }
+            }
+            return null;
         }
 
         private IEnumerator ExecutePush(string direction)
@@ -242,17 +341,53 @@ namespace LostSouls.LLM
             while (character.IsMoving) yield return null;
         }
 
-        private void ExecuteOpenClose()
+        private IEnumerator ExecuteOpenClose(string targetId)
         {
-            // Find nearby door
-            GridObject target = objects.GetInteractableObjectNear(character.GridPosition);
-            if (target is DoorObject door)
+            DoorObject door = null;
+
+            // Try specific target
+            if (!string.IsNullOrEmpty(targetId))
             {
-                if (door.DoorState == DoorState.Closed)
-                    door.Open();
-                else if (door.DoorState == DoorState.Open)
-                    door.Close();
+                GridObject obj = objects.GetObject(targetId);
+                if (obj is DoorObject d) door = d;
             }
+
+            // Fallback: nearby door
+            if (door == null)
+            {
+                GridObject nearby = objects.GetInteractableObjectNear(character.GridPosition);
+                if (nearby is DoorObject d) door = d;
+            }
+
+            if (door == null) yield break;
+
+            // Move near door if not adjacent
+            int dist = Mathf.Abs(door.GridPosition.x - character.GridPosition.x) +
+                       Mathf.Abs(door.GridPosition.y - character.GridPosition.y);
+            if (dist > 1)
+            {
+                var neighbors = grid.GetWalkableNeighbors(door.GridPosition);
+                if (neighbors.Count > 0)
+                {
+                    Vector2Int best = neighbors[0].GridPosition;
+                    int bestDist = Mathf.Abs(best.x - character.GridPosition.x) +
+                                   Mathf.Abs(best.y - character.GridPosition.y);
+                    foreach (var n in neighbors)
+                    {
+                        Vector2Int nPos = n.GridPosition;
+                        int dd = Mathf.Abs(nPos.x - character.GridPosition.x) +
+                                 Mathf.Abs(nPos.y - character.GridPosition.y);
+                        if (dd < bestDist) { best = nPos; bestDist = dd; }
+                    }
+                    character.MoveTo(best);
+                    while (character.IsMoving) yield return null;
+                }
+            }
+
+            if (door.DoorState == DoorState.Closed)
+                door.Open();
+            else if (door.DoorState == DoorState.Open)
+                door.Close();
         }
 
         private string ResolveDirection(string direction, CharacterProfileData profile)

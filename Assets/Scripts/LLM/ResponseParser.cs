@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
@@ -21,11 +22,19 @@ namespace LostSouls.LLM
     }
 
     [Serializable]
+    public class LLMActionItem
+    {
+        public string action;
+        public ActionParams @params;
+    }
+
+    [Serializable]
     public class LLMResponse
     {
         public string dialogue;
-        public string action;
-        public ActionParams @params;
+        public string action;         // Single action (backward compat)
+        public ActionParams @params;  // Single action params (backward compat)
+        public List<LLMActionItem> actions; // Multi-action array
         public string emotion;
     }
 
@@ -61,11 +70,15 @@ namespace LostSouls.LLM
 
     public static class ResponseParser
     {
-        public static CharacterAction Parse(string rawResponse)
+        /// <summary>
+        /// Parses an LLM response into a list of CharacterActions.
+        /// Standard/Clever characters may return multiple actions.
+        /// </summary>
+        public static List<CharacterAction> ParseMultiple(string rawResponse)
         {
             if (string.IsNullOrEmpty(rawResponse))
             {
-                return CharacterAction.Fallback();
+                return new List<CharacterAction> { CharacterAction.Fallback() };
             }
 
             string cleaned = StripMarkdownFences(rawResponse.Trim());
@@ -75,25 +88,64 @@ namespace LostSouls.LLM
                 LLMResponse response = JsonUtility.FromJson<LLMResponse>(cleaned);
                 if (response == null)
                 {
-                    return CharacterAction.Fallback();
+                    return new List<CharacterAction> { CharacterAction.Fallback() };
                 }
 
-                return new CharacterAction
+                string dialogue = response.dialogue ?? "";
+                string emotion = response.emotion ?? "neutral";
+
+                var results = new List<CharacterAction>();
+
+                // Try multi-action array first
+                if (response.actions != null && response.actions.Count > 0)
                 {
-                    type = ParseActionType(response.action),
-                    targetObjectId = response.@params?.target,
-                    direction = response.@params?.direction,
-                    steps = response.@params?.steps > 0 ? response.@params.steps : 1,
-                    dialogue = response.dialogue ?? "",
-                    emotion = response.emotion ?? "neutral",
-                    useOnTarget = response.@params?.use_on
-                };
+                    for (int i = 0; i < response.actions.Count; i++)
+                    {
+                        var item = response.actions[i];
+                        results.Add(new CharacterAction
+                        {
+                            type = ParseActionType(item.action),
+                            targetObjectId = item.@params?.target,
+                            direction = item.@params?.direction,
+                            steps = item.@params?.steps > 0 ? item.@params.steps : 1,
+                            dialogue = i == 0 ? dialogue : "", // Only first action gets dialogue
+                            emotion = i == 0 ? emotion : "neutral",
+                            useOnTarget = item.@params?.use_on
+                        });
+                    }
+                }
+
+                // Fallback to single action field
+                if (results.Count == 0)
+                {
+                    results.Add(new CharacterAction
+                    {
+                        type = ParseActionType(response.action),
+                        targetObjectId = response.@params?.target,
+                        direction = response.@params?.direction,
+                        steps = response.@params?.steps > 0 ? response.@params.steps : 1,
+                        dialogue = dialogue,
+                        emotion = emotion,
+                        useOnTarget = response.@params?.use_on
+                    });
+                }
+
+                return results;
             }
             catch (Exception e)
             {
                 Debug.LogWarning($"Failed to parse LLM response: {e.Message}\nRaw: {rawResponse}");
-                return CharacterAction.Fallback();
+                return new List<CharacterAction> { CharacterAction.Fallback() };
             }
+        }
+
+        /// <summary>
+        /// Backward-compatible single-action parse (returns first action only).
+        /// </summary>
+        public static CharacterAction Parse(string rawResponse)
+        {
+            var actions = ParseMultiple(rawResponse);
+            return actions.Count > 0 ? actions[0] : CharacterAction.Fallback();
         }
 
         private static string StripMarkdownFences(string text)

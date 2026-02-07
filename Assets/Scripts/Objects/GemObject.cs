@@ -38,7 +38,7 @@ namespace LostSouls.Objects
             }
 
             transform.SetParent(character.transform);
-            transform.localPosition = Vector3.up * 1.5f;
+            transform.localPosition = Vector3.up * 0.8f + Vector3.forward * 0.375f;
 
             Debug.Log($"Gem '{displayName}' picked up");
             NotifyStateChanged();

@@ -194,6 +194,18 @@ namespace LostSouls.Core
         {
             // Subscribe to character events
             character.OnReachedExit += HandleCharacterReachedExit;
+
+            // Initialize TurnManager with character profile
+            if (turnManager != null && CurrentLevelData?.characters != null &&
+                CurrentLevelData.characters.Count > 0)
+            {
+                CharacterProfileData profile = CurrentLevelData.characters[0].profile;
+                if (profile != null)
+                {
+                    turnManager.InitializeForLevel(character, profile);
+                    Debug.Log($"TurnManager initialized for {profile.name} (comprehension: {profile.comprehension})");
+                }
+            }
         }
 
         private void HandleCharacterReachedExit(Vector2Int position)
@@ -283,6 +295,19 @@ namespace LostSouls.Core
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Refunds a prompt on API failure (not the player's fault)
+        /// </summary>
+        public void RefundPrompt()
+        {
+            if (promptsUsed > 0)
+            {
+                promptsUsed--;
+                OnPromptUsed?.Invoke(PromptsRemaining);
+                Debug.Log($"Prompt refunded. Remaining: {PromptsRemaining}");
+            }
         }
 
         /// <summary>

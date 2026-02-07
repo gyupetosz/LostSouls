@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using LostSouls.Core;
+using Assets.Scripts.Core;
 
 namespace LostSouls.Grid
 {
@@ -16,7 +17,7 @@ namespace LostSouls.Grid
 
         [Header("Exit/Door State")]
         [SerializeField] private bool isOpen;
-        [SerializeField] private float openAnimDuration = 0.5f;
+        [SerializeField] private float openAnimDuration = 3f;
 
         [Header("Visuals")]
         [SerializeField] private bool hasModelVisuals;
@@ -251,6 +252,8 @@ namespace LostSouls.Grid
             if (isOpen) return;
             if (tileType != TileType.Exit && tileType != TileType.Door) return;
 
+            GlobalAudio.PlayRockRumble(transform.position);
+
             if (animCoroutine != null) StopCoroutine(animCoroutine);
             animCoroutine = StartCoroutine(AnimateOpenClose(true));
         }
@@ -262,6 +265,8 @@ namespace LostSouls.Grid
         {
             if (!isOpen) return;
             if (tileType != TileType.Exit && tileType != TileType.Door) return;
+
+            GlobalAudio.PlayRockRumble(transform.position);
 
             if (animCoroutine != null) StopCoroutine(animCoroutine);
             animCoroutine = StartCoroutine(AnimateOpenClose(false));

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using LostSouls.Character;
 using LostSouls.Grid;
 using LostSouls.Objects;
@@ -34,6 +35,10 @@ namespace LostSouls.Core
 
             // Don't process input while moving
             if (character.IsMoving) return;
+
+            // Don't process debug input while typing in a UI field
+            if (EventSystem.current != null && EventSystem.current.currentSelectedGameObject != null)
+                return;
 
             bool shift = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
 
@@ -111,6 +116,7 @@ namespace LostSouls.Core
             if (Input.GetKeyDown(KeyCode.Alpha3)) LoadDebugLevel(3);
             if (Input.GetKeyDown(KeyCode.Alpha4)) LoadDebugLevel(4);
             if (Input.GetKeyDown(KeyCode.Alpha5)) LoadDebugLevel(5);
+            if (Input.GetKeyDown(KeyCode.Alpha6)) LoadDebugLevel(6);
         }
 
         private void TryMove(Direction direction)
@@ -279,7 +285,7 @@ namespace LostSouls.Core
             GUILayout.Label("T: Use Item on Target");
             GUILayout.Label("Space: Pathfind to Exit");
             GUILayout.Label("R: Restart | O: Toggle Exit");
-            GUILayout.Label("1-5: Load Level");
+            GUILayout.Label("1-6: Load Level");
             GUILayout.Space(10);
 
             if (character != null)

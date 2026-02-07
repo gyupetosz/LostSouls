@@ -101,15 +101,29 @@ namespace LostSouls.Core
             isProcessingTurn = true;
             OnTurnStarted?.Invoke();
 
+            Debug.Log($"[TurnManager] Processing prompt: \"{playerInput}\"");
+
             // Step 1: Input sanitization
             string characterName = currentProfile.name ?? "Explorer";
             int maxLength = gameManager.CurrentLevelData?.prompt_max_length ?? 150;
 
-            SanitizeResult sanitizeResult = InputSanitizer.Sanitize(
-                playerInput, maxLength, currentProfile, characterName);
+            SanitizeResult sanitizeResult;
+            try
+            {
+                sanitizeResult = InputSanitizer.Sanitize(
+                    playerInput, maxLength, currentProfile, characterName);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[TurnManager] Sanitizer crashed: {e}");
+                isProcessingTurn = false;
+                OnTurnCompleted?.Invoke();
+                yield break;
+            }
 
             if (!sanitizeResult.passed)
             {
+                Debug.Log($"[TurnManager] Input rejected: {sanitizeResult.rejectionDialogue}");
                 if (sanitizeResult.costsPrompt)
                 {
                     gameManager.UsePrompt();
@@ -131,77 +145,225 @@ namespace LostSouls.Core
             }
 
             // Step 3: Build system prompt
-            string systemPrompt = PromptBuilder.Build(
-                currentProfile, currentCharacter, gridManager, objectManager, hintEscalationLevel);
-
-            // Step 4: Call LLM
-            string llmResponse = null;
-            string llmError = null;
-
-            llmClient.SendMessage(systemPrompt, playerInput,
-                response => llmResponse = response,
-                error => llmError = error);
-
-            // Wait for response
-            while (llmResponse == null && llmError == null)
+            string systemPrompt;
+            try
             {
-                yield return null;
+                systemPrompt = PromptBuilder.Build(
+                    currentProfile, currentCharacter, gridManager, objectManager, hintEscalationLevel);
+                Debug.Log($"[TurnManager] System prompt built ({systemPrompt.Length} chars)");
             }
-
-            if (llmError != null)
+            catch (System.Exception e)
             {
-                Debug.LogWarning($"LLM error: {llmError}");
-                // Refund the prompt on API failure
-                // We can't actually refund easily, so just show error
-                OnCharacterResponse?.Invoke(
-                    "The spirit's voice fades... (API error, prompt not consumed)", "confused");
+                Debug.LogError($"[TurnManager] PromptBuilder crashed: {e}");
+                gameManager.RefundPrompt();
                 isProcessingTurn = false;
                 OnTurnCompleted?.Invoke();
                 yield break;
             }
 
-            // Step 5: Parse response
-            CharacterAction action = ResponseParser.Parse(llmResponse);
+            // Step 4: Call LLM (with retry for transient errors like 429)
+            string llmResponse = null;
+            string llmError = null;
+            int maxRetries = 3;
 
-            // Step 6: Apply personality post-processing
-            action = ApplyPersonalityPostProcessing(action);
-
-            // Step 7: Validate action
-            action = ActionValidator.Validate(
-                action, currentCharacter, gridManager, pathfinding, objectManager, currentProfile);
-
-            // Step 8: Show dialogue
-            OnCharacterResponse?.Invoke(action.dialogue, action.emotion);
-
-            // Track action for hint escalation
-            if (action.type == ActionType.None)
+            for (int attempt = 0; attempt < maxRetries; attempt++)
             {
-                hintEscalationLevel++;
-            }
+                llmResponse = null;
+                llmError = null;
 
-            // Step 9: Execute action
-            if (action.type != ActionType.None && action.type != ActionType.Wait &&
-                action.type != ActionType.Look && action.type != ActionType.Examine)
-            {
-                bool actionDone = false;
-                actionExecutor.OnActionCompleted += () => actionDone = true;
+                Debug.Log($"[TurnManager] Sending to LLM (attempt {attempt + 1}/{maxRetries})...");
 
-                actionExecutor.Execute(action, currentProfile);
+                llmClient.SendMessage(systemPrompt, playerInput,
+                    response => llmResponse = response,
+                    error => llmError = error);
 
-                // Wait for action completion
-                float timeout = 10f;
-                float elapsed = 0f;
-                while (!actionDone && elapsed < timeout)
+                // Wait for response
+                while (llmResponse == null && llmError == null)
                 {
-                    elapsed += Time.deltaTime;
                     yield return null;
                 }
 
-                actionExecutor.OnActionCompleted -= () => actionDone = true;
+                // Success — break out
+                if (llmResponse != null)
+                {
+                    Debug.Log($"[TurnManager] LLM response received ({llmResponse.Length} chars)");
+                    break;
+                }
+
+                // Retry on 429 rate limit
+                if (llmError != null && llmError.Contains("429"))
+                {
+                    float retryDelay = (attempt + 1) * 2f; // 2s, 4s, 6s
+                    Debug.Log($"[TurnManager] Rate limited (429). Retrying in {retryDelay}s... (attempt {attempt + 1}/{maxRetries})");
+                    yield return new WaitForSeconds(retryDelay);
+                    continue;
+                }
+
+                // Non-retryable error — break
+                break;
             }
 
-            // Track last action type
-            lastActionType = action.type;
+            if (llmError != null)
+            {
+                Debug.LogWarning($"[TurnManager] LLM error: {llmError}");
+                gameManager.RefundPrompt();
+                OnCharacterResponse?.Invoke(
+                    "*the connection wavers* ...Try again in a moment.", "confused");
+                isProcessingTurn = false;
+                OnTurnCompleted?.Invoke();
+                yield break;
+            }
+
+            // Step 5: Parse response (may return multiple actions)
+            List<CharacterAction> actions;
+            try
+            {
+                actions = ResponseParser.ParseMultiple(llmResponse);
+
+                // Enforce comprehension limits
+                int maxActions = GetMaxActions(currentProfile);
+                if (actions.Count > maxActions)
+                {
+                    Debug.Log($"[TurnManager] Truncating {actions.Count} actions to comprehension limit of {maxActions}");
+                    // Keep dialogue from first action, add overflow message
+                    if (actions.Count > 0 && maxActions > 0)
+                    {
+                        actions[maxActions - 1].dialogue += " That's too much at once!";
+                    }
+                    actions = actions.GetRange(0, maxActions);
+                }
+
+                Debug.Log($"[TurnManager] Parsed {actions.Count} action(s):");
+                for (int i = 0; i < actions.Count; i++)
+                {
+                    Debug.Log($"[TurnManager]   [{i}] {actions[i].type}, target: {actions[i].targetObjectId}, dir: {actions[i].direction}");
+                }
+                if (actions.Count > 0)
+                    Debug.Log($"[TurnManager] Dialogue: {actions[0].dialogue}");
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"[TurnManager] ResponseParser crashed: {e}\nRaw: {llmResponse}");
+                OnCharacterResponse?.Invoke("I... I'm confused.", "confused");
+                isProcessingTurn = false;
+                OnTurnCompleted?.Invoke();
+                yield break;
+            }
+
+            // Step 6-9: Process each action sequentially
+            bool anyActionExecuted = false;
+
+            for (int i = 0; i < actions.Count; i++)
+            {
+                CharacterAction action = actions[i];
+
+                // Track whether the LLM intentionally chose "none" (conversation)
+                bool wasIntentionalNone = action.type == ActionType.None;
+
+                // Step 6: Apply personality post-processing (first action only)
+                if (i == 0)
+                {
+                    try
+                    {
+                        action = ApplyPersonalityPostProcessing(action);
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogError($"[TurnManager] Personality post-processing crashed: {e}");
+                    }
+                }
+
+                // Step 7: Validate action (skip validation for intentional conversation)
+                if (!wasIntentionalNone)
+                {
+                    try
+                    {
+                        action = ActionValidator.Validate(
+                            action, currentCharacter, gridManager, pathfinding, objectManager, currentProfile);
+                        Debug.Log($"[TurnManager] Validated action [{i}]: {action.type}");
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogError($"[TurnManager] ActionValidator crashed on action [{i}]: {e}");
+                        action = CharacterAction.Fallback(action.dialogue);
+                    }
+                }
+
+                // Step 8: Show dialogue (first action only, or if no action)
+                if (i == 0 || action.type == ActionType.None)
+                {
+                    if (!string.IsNullOrEmpty(action.dialogue))
+                        OnCharacterResponse?.Invoke(action.dialogue, action.emotion);
+                }
+
+                // Handle None actions
+                if (action.type == ActionType.None)
+                {
+                    // Only escalate hints if validation rejected the action, not for conversation
+                    if (!wasIntentionalNone)
+                    {
+                        hintEscalationLevel++;
+                    }
+                    // If first action is None (conversation or failure), stop the chain
+                    if (i == 0) break;
+                    // If a later action fails, skip it but continue
+                    continue;
+                }
+
+                // Step 9: Execute action
+                if (action.type != ActionType.Wait &&
+                    action.type != ActionType.Look && action.type != ActionType.Examine)
+                {
+                    Debug.Log($"[TurnManager] Executing action [{i}]: {action.type}");
+
+                    bool actionDone = false;
+                    System.Action onDone = () => actionDone = true;
+                    actionExecutor.OnActionCompleted += onDone;
+
+                    try
+                    {
+                        actionExecutor.Execute(action, currentProfile);
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogError($"[TurnManager] ActionExecutor crashed on action [{i}]: {e}");
+                        actionDone = true;
+                    }
+
+                    // Wait for action completion
+                    float timeout = 15f;
+                    float elapsed = 0f;
+                    while (!actionDone && elapsed < timeout)
+                    {
+                        elapsed += Time.deltaTime;
+                        yield return null;
+                    }
+
+                    if (!actionDone)
+                    {
+                        Debug.LogWarning($"[TurnManager] Action [{i}] timed out after 15s");
+                    }
+
+                    actionExecutor.OnActionCompleted -= onDone;
+                    anyActionExecuted = true;
+
+                    // Check if level completed during this action
+                    if (gameManager.CurrentState != GameState.Playing)
+                    {
+                        Debug.Log($"[TurnManager] Game state changed to {gameManager.CurrentState} during action [{i}], stopping chain");
+                        break;
+                    }
+
+                    // Small delay between chained actions for visual clarity
+                    if (i < actions.Count - 1)
+                    {
+                        yield return new WaitForSeconds(0.3f);
+                    }
+                }
+
+                // Track last action type
+                lastActionType = action.type;
+            }
 
             // Step 10: Check if out of prompts and objective not met
             if (gameManager.PromptsRemaining <= 0 &&
@@ -309,6 +471,18 @@ namespace LostSouls.Core
             }
 
             return action;
+        }
+
+        private int GetMaxActions(CharacterProfileData profile)
+        {
+            var level = profile.GetComprehensionLevel();
+            return level switch
+            {
+                ComprehensionLevel.Simple => 1,
+                ComprehensionLevel.Standard => 2,
+                ComprehensionLevel.Clever => 5,
+                _ => 1
+            };
         }
 
         private string InvertDirection(string direction)

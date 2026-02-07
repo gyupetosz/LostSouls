@@ -1,8 +1,9 @@
-using System;
-using UnityEngine;
+using Assets.Scripts.Core;
+using LostSouls.Character;
 using LostSouls.Core;
 using LostSouls.Grid;
-using LostSouls.Character;
+using System;
+using UnityEngine;
 
 namespace LostSouls.Objects
 {
@@ -56,6 +57,7 @@ namespace LostSouls.Objects
             }
 
             placedGem = gem;
+            GlobalAudio.PlayPressurePlate(transform.position);
 
             // Check if this is the matching gem
             bool isMatch = !string.IsNullOrEmpty(acceptsGemId) && gem.ObjectId == acceptsGemId;
