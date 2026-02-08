@@ -186,7 +186,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 0
+  m_PresetInfoIsWorld: 1
 --- !u!223 &249967732
 Canvas:
   m_ObjectHideFlags: 0
@@ -2044,7 +2044,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 0
+  m_PresetInfoIsWorld: 1
 --- !u!223 &1276039173
 Canvas:
   m_ObjectHideFlags: 0
@@ -2858,6 +2858,7 @@ MonoBehaviour:
   character: {fileID: 0}
   gridManager: {fileID: 0}
   pathfinding: {fileID: 0}
+  debugEnabled: 0
   showDebugInfo: 1
 --- !u!4 &1894298883
 Transform:
