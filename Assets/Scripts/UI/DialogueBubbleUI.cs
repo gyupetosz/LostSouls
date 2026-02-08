@@ -26,6 +26,7 @@ namespace LostSouls.UI
         [SerializeField] private Vector3 offset = new Vector3(0, 3.5f, 0);
 
         private TurnManager turnManager;
+        private GameManager gameManager;
         private Coroutine displayCoroutine;
         private Camera mainCamera;
 
@@ -33,11 +34,17 @@ namespace LostSouls.UI
         {
             mainCamera = Camera.main;
             turnManager = FindObjectOfType<TurnManager>();
+            gameManager = GameManager.Instance;
 
             if (turnManager != null)
             {
                 turnManager.OnCharacterResponse += ShowDialogue;
                 turnManager.OnInputRejected += ShowRejection;
+            }
+
+            if (gameManager != null)
+            {
+                gameManager.OnLevelStarted += OnLevelStarted;
             }
 
             // Auto-find character if no follow target set
@@ -72,6 +79,16 @@ namespace LostSouls.UI
         public void SetFollowTarget(Transform target)
         {
             followTarget = target;
+        }
+
+        private void OnLevelStarted(int levelId)
+        {
+            // Clear any active dialogue when switching levels
+            if (displayCoroutine != null)
+                StopCoroutine(displayCoroutine);
+            displayCoroutine = null;
+            HideBubble();
+            followTarget = null; // Old character is destroyed; LateUpdate will find the new one
         }
 
         public void ShowDialogue(string dialogue, string emotion)
@@ -171,6 +188,10 @@ namespace LostSouls.UI
             {
                 turnManager.OnCharacterResponse -= ShowDialogue;
                 turnManager.OnInputRejected -= ShowRejection;
+            }
+            if (gameManager != null)
+            {
+                gameManager.OnLevelStarted -= OnLevelStarted;
             }
         }
 

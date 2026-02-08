@@ -33,29 +33,29 @@
   },
   "objects": [
     {
-      "id": "key_gold",
-      "type": "key",
-      "display_name": "Gold Key",
-      "position": { "x": 1, "y": 1 },
-      "properties": {
-        "color": "gold",
-        "size": "small",
-        "shape": "ornate",
-        "unlocks_door_id": "door_main",
-        "variant": 1
-      }
-    },
-    {
       "id": "key_silver",
       "type": "key",
       "display_name": "Silver Key",
-      "position": { "x": 3, "y": 1 },
+      "position": { "x": 1, "y": 0 },
       "properties": {
         "color": "silver",
         "size": "small",
         "shape": "simple",
         "unlocks_door_id": "",
         "variant": 2
+      }
+    },
+    {
+      "id": "key_gold",
+      "type": "key",
+      "display_name": "Gold Key",
+      "position": { "x": 1, "y": 2 },
+      "properties": {
+        "color": "gold",
+        "size": "small",
+        "shape": "ornate",
+        "unlocks_door_id": "door_main",
+        "variant": 1
       }
     },
     {
@@ -73,12 +73,12 @@
     {
       "id": "explorer_1",
       "name": "Sage",
-      "position": { "x": 0, "y": 0 },
+      "position": { "x": 0, "y": 1 },
       "profile_id": "sage_standard",
       "profile": {
         "profile_id": "sage_standard",
         "name": "Sage",
-        "bio": "Sage listens carefully but needs clear instructions. When things are ambiguous, Sage will ask for clarification.",
+        "bio": "Sage is a quick and decisive explorer. When instructions are vague or ambiguous, Sage doesn't ask for clarification — instead, Sage just picks whichever option seems easiest or closest. This means if you aren't specific, Sage might not do what you intended. Be precise with your instructions!",
         "model_prefab": "character2",
         "comprehension": "standard",
         "perception_quirks": [],

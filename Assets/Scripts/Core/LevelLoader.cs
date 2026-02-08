@@ -91,6 +91,18 @@ namespace LostSouls.Core
         public bool LoadLevelFromResources(string resourcePath)
         {
             Debug.Log($"LevelLoader: Attempting to load from Resources/{resourcePath}");
+
+            // In editor, read directly from disk to avoid Unity's asset cache
+            #if UNITY_EDITOR
+            string filePath = System.IO.Path.Combine(Application.dataPath, "Resources", resourcePath + ".json");
+            if (System.IO.File.Exists(filePath))
+            {
+                string json = System.IO.File.ReadAllText(filePath);
+                Debug.Log($"LevelLoader: Read file directly from disk, length={json.Length}");
+                return LoadLevelFromJson(json);
+            }
+            #endif
+
             TextAsset levelAsset = Resources.Load<TextAsset>(resourcePath);
 
             if (levelAsset == null)
@@ -575,6 +587,16 @@ namespace LostSouls.Core
                     return gemPrefabs[gemIndex % gemPrefabs.Length];
 
                 case ObjectType.Pedestal:
+                    if (pedestalPrefab == null)
+                    {
+                        #if UNITY_EDITOR
+                        pedestalPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/pedestal/pedestal.prefab");
+                        if (pedestalPrefab == null)
+                            pedestalPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Objects/Pedestal.prefab");
+                        if (pedestalPrefab != null)
+                            Debug.Log($"LevelLoader: Loaded pedestal prefab from AssetDatabase: {UnityEditor.AssetDatabase.GetAssetPath(pedestalPrefab)}");
+                        #endif
+                    }
                     return pedestalPrefab;
 
                 default:

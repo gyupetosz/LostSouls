@@ -17,9 +17,37 @@ ModelImporter:
     removeConstantScaleCurves: 0
     motionNodeName: 
     rigImportErrors: 
-    rigImportWarnings: 
+    rigImportWarnings: "Copied Avatar Rig Configuration mis-match. Bone length in
+      copied configuration does not match position in animation file:\n\t'HipPart1_L'
+      : position error = 7.133685 mm\n\t'HipPart2_L' : position error = 7.133707
+      mm\n\t'Knee_L' : position error = 7.133707 mm\n\t'Ankle_L' : position error
+      = 30.107542 mm\nCopied Avatar Rig Configuration mis-match. Inbetween bone rotation
+      in copied configuration does not match rotation in animation file:\n\t'HipPart2_L'
+      : rotation error = 2.190357 deg\n"
     animationImportErrors: 
-    animationImportWarnings: 
+    animationImportWarnings: "\nClip 'Take 001' has import animation warnings that
+      might lower retargeting quality:\nNote: Activate translation DOF on avatar
+      to improve retargeting quality.\n\t'RootPart1_M' is inbetween humanoid transforms
+      and has rotation animation that will be discarded.\n\t'Spine1Part1_M' is inbetween
+      humanoid transforms and has rotation animation that will be discarded.\n\t'NeckPart1_M'
+      is inbetween humanoid transforms and has rotation animation that will be discarded.\n\t'NeckPart2_M'
+      is inbetween humanoid transforms and has rotation animation that will be discarded.\n\t'Hip_R'
+      is inbetween humanoid transforms and has rotation animation that will be discarded.\n\t'Hip_R'
+      has scale animation that will be discarded.\n\t'HipPart1_R' has translation
+      animation that will be discarded.\n\t'HipPart1_R' has scale animation that
+      will be discarded.\n\t'HipPart2_R' has translation animation that will be discarded.\n\t'HipPart2_R'
+      is inbetween humanoid transforms and has rotation animation that will be discarded.\n\t'HipPart2_R'
+      has scale animation that will be discarded.\n\t'Knee_R' has translation animation
+      that will be discarded.\n\t'Knee_R' has scale animation that will be discarded.\n\t'Ankle_R'
+      has translation animation that will be discarded.\n\t'Hip_L' is inbetween humanoid
+      transforms and has rotation animation that will be discarded.\n\t'Hip_L' has
+      scale animation that will be discarded.\n\t'HipPart1_L' has translation animation
+      that will be discarded.\n\t'HipPart1_L' has scale animation that will be discarded.\n\t'HipPart2_L'
+      has translation animation that will be discarded.\n\t'HipPart2_L' is inbetween
+      humanoid transforms and has rotation animation that will be discarded.\n\t'HipPart2_L'
+      has scale animation that will be discarded.\n\t'Knee_L' has translation animation
+      that will be discarded.\n\t'Knee_L' has scale animation that will be discarded.\n\t'Ankle_L'
+      has translation animation that will be discarded.\n"
     animationRetargetingWarnings: 
     animationDoRetargetingWarnings: 0
     importAnimatedCustomProperties: 0
@@ -31,7 +59,36 @@ ModelImporter:
     animationWrapMode: 0
     extraExposedTransformPaths: []
     extraUserProperties: []
-    clipAnimations: []
+    clipAnimations:
+    - serializedVersion: 16
+      name: Take 001
+      takeName: Take 001
+      internalID: 1827226128182048838
+      firstFrame: 0
+      lastFrame: 30
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
     isReadable: 0
   meshes:
     lODScreenPercentages: []

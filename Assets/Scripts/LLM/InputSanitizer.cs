@@ -94,7 +94,7 @@ namespace LostSouls.LLM
                         {
                             string refusal = quirk.config?.refusal_response ??
                                 "*looks away, seemingly offended by the lack of manners*";
-                            return SanitizeResult.Reject(refusal, true);
+                            return SanitizeResult.Reject(refusal, false);
                         }
                     }
                 }

@@ -56,6 +56,10 @@ namespace LostSouls.Core
             // Create LLM components
             llmClient = gameObject.AddComponent<LLMClient>();
             actionExecutor = gameObject.AddComponent<ActionExecutor>();
+            actionExecutor.OnActionFeedback += (dialogue, emotion) =>
+            {
+                OnCharacterResponse?.Invoke(dialogue, emotion);
+            };
         }
 
         public void InitializeForLevel(ExplorerController character, CharacterProfileData profile)
@@ -250,6 +254,33 @@ namespace LostSouls.Core
                 yield break;
             }
 
+            // Step 5b: Vocabulary enforcement — if user used real names the character
+            // doesn't know, override any physical actions to None and hint at the correct name
+            var vocabMatch = FindRealVocabNameInInput(playerInput, currentProfile);
+            if (vocabMatch.matched)
+            {
+                bool anyBlocked = false;
+                for (int i = 0; i < actions.Count; i++)
+                {
+                    var a = actions[i];
+                    if (a.type != ActionType.None && a.type != ActionType.Wait &&
+                        a.type != ActionType.Look && a.type != ActionType.Examine)
+                    {
+                        Debug.Log($"[TurnManager] Vocabulary enforcement: blocking {a.type} because user used a real name");
+                        a.type = ActionType.None;
+                        anyBlocked = true;
+                    }
+                }
+                // Override dialogue with a hint about the character's vocabulary name
+                if (anyBlocked && actions.Count > 0)
+                {
+                    string charName = currentProfile?.name ?? "I";
+                    actions[0].dialogue = $"*looks confused* I don't know what a \"{vocabMatch.realWord}\" is... " +
+                        $"Do you mean the {vocabMatch.characterWord}?";
+                    actions[0].emotion = "confused";
+                }
+            }
+
             // Step 6-9: Process each action sequentially
             bool anyActionExecuted = false;
 
@@ -299,11 +330,8 @@ namespace LostSouls.Core
                 // Handle None actions
                 if (action.type == ActionType.None)
                 {
-                    // Only escalate hints if validation rejected the action, not for conversation
-                    if (!wasIntentionalNone)
-                    {
-                        hintEscalationLevel++;
-                    }
+                    // Always escalate hints on None — player needs more help
+                    hintEscalationLevel++;
                     // If first action is None (conversation or failure), stop the chain
                     if (i == 0) break;
                     // If a later action fails, skip it but continue
@@ -365,7 +393,7 @@ namespace LostSouls.Core
                 lastActionType = action.type;
             }
 
-            // Step 10: Check if out of prompts and objective not met
+            // Step 10: Check if out of prompts and objective not met — auto-restart
             if (gameManager.PromptsRemaining <= 0 &&
                 gameManager.CurrentState == GameState.Playing)
             {
@@ -373,7 +401,9 @@ namespace LostSouls.Core
                 yield return new WaitForSeconds(0.5f);
                 if (gameManager.CurrentState == GameState.Playing)
                 {
-                    gameManager.FailLevel();
+                    OnCharacterResponse?.Invoke("*Your spirit energy fades... the connection resets*", "sad");
+                    yield return new WaitForSeconds(1.5f);
+                    gameManager.RestartLevel();
                 }
             }
 
@@ -499,6 +529,60 @@ namespace LostSouls.Core
                 "right" => "left",
                 _ => direction
             };
+        }
+
+        /// <summary>
+        /// Checks if the player's input contains any real-world name that the character's
+        /// own_vocabulary quirk maps FROM (i.e. names the character doesn't recognize).
+        /// Returns (matched, realWord, characterWord) so we can build a hint.
+        /// </summary>
+        private (bool matched, string realWord, string characterWord) FindRealVocabNameInInput(
+            string userInput, CharacterProfileData profile)
+        {
+            if (profile?.perception_quirks == null) return (false, null, null);
+
+            string inputLower = userInput.ToLower();
+            foreach (var quirk in profile.perception_quirks)
+            {
+                if (quirk.type?.ToLower() != "own_vocabulary") continue;
+                if (quirk.config?.vocabulary_map?.HasEntries() != true) continue;
+
+                foreach (var entry in quirk.config.vocabulary_map.entries)
+                {
+                    if (string.IsNullOrEmpty(entry.word)) continue;
+
+                    // Check full phrase first
+                    if (inputLower.Contains(entry.word.ToLower()))
+                    {
+                        Debug.Log($"[TurnManager] User input contains real vocab name '{entry.word}' (character calls it '{entry.replacement}')");
+                        return (true, entry.word, entry.replacement);
+                    }
+
+                    // Check individual words from real name, excluding words shared with replacement
+                    string[] realWords = entry.word.ToLower().Split(' ');
+                    string replacementLower = entry.replacement?.ToLower() ?? "";
+                    string[] replacementWords = replacementLower.Split(' ');
+
+                    foreach (string realWord in realWords)
+                    {
+                        if (realWord.Length < 3) continue; // Skip tiny words like "a", "of"
+                        // Skip words that also appear in the replacement name
+                        bool sharedWithReplacement = false;
+                        foreach (string repWord in replacementWords)
+                        {
+                            if (realWord == repWord) { sharedWithReplacement = true; break; }
+                        }
+                        if (sharedWithReplacement) continue;
+
+                        if (inputLower.Contains(realWord))
+                        {
+                            Debug.Log($"[TurnManager] User input contains real vocab word '{realWord}' from '{entry.word}' (character calls it '{entry.replacement}')");
+                            return (true, entry.word, entry.replacement);
+                        }
+                    }
+                }
+            }
+            return (false, null, null);
         }
     }
 }

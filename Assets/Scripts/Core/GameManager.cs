@@ -277,8 +277,8 @@ namespace LostSouls.Core
 
             if (promptsUsed >= promptBudget)
             {
-                Debug.Log("No prompts remaining!");
-                FailLevel();
+                Debug.Log("No prompts remaining! Restarting level...");
+                RestartLevel();
                 return false;
             }
 
@@ -375,7 +375,10 @@ namespace LostSouls.Core
         /// </summary>
         public void NextLevel()
         {
-            LoadLevel(currentLevelId + 1);
+            int nextLevel = currentLevelId + 1;
+            if (nextLevel > 5)
+                nextLevel = 1;
+            LoadLevel(nextLevel);
         }
 
         /// <summary>

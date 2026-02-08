@@ -15,7 +15,7 @@ namespace LostSouls.UI
         [SerializeField] private Image fillBackground;
 
         [Header("Colors")]
-        [SerializeField] private Color normalColor = new Color(0f, 0.8f, 1f);
+        [SerializeField] private Color normalColor = new Color(0.1f, 0.4f, 0.85f);
         [SerializeField] private Color warningColor = new Color(1f, 0.8f, 0f);
         [SerializeField] private Color criticalColor = new Color(1f, 0.2f, 0.2f);
 
@@ -58,13 +58,15 @@ namespace LostSouls.UI
             if (energyText != null)
             {
                 energyText.text = $"{remaining} / {budget}";
+                energyText.fontSize = 36;
                 energyText.color = GetStateColor(budget, remaining);
             }
 
             // Update label
             if (labelText != null)
             {
-                labelText.text = "ENERGY";
+                labelText.text = "\u26A1 ENERGY";
+                labelText.fontSize = 22;
             }
 
             // Update fill bar

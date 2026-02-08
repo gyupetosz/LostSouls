@@ -11,11 +11,13 @@ namespace LostSouls.LLM
     public class ActionExecutor : MonoBehaviour
     {
         public event Action OnActionCompleted;
+        public event Action<string, string> OnActionFeedback; // (dialogue, emotion)
 
         private ExplorerController character;
         private GridManager grid;
         private Pathfinding pathfinding;
         private ObjectManager objects;
+        private CharacterProfileData currentProfile;
 
         public void Initialize(ExplorerController character, GridManager grid,
             Pathfinding pathfinding, ObjectManager objects)
@@ -37,6 +39,7 @@ namespace LostSouls.LLM
                 return;
             }
 
+            currentProfile = profile;
             StartCoroutine(ExecuteCoroutine(action, profile));
         }
 
@@ -155,10 +158,12 @@ namespace LostSouls.LLM
         {
             GridObject target = null;
 
-            // Try specific target first
+            // Try specific target first (exact ID, then fuzzy with vocabulary)
             if (!string.IsNullOrEmpty(targetId))
             {
                 target = objects.GetObject(targetId);
+                if (target == null)
+                    target = FuzzyFindObject(targetId);
             }
 
             // Fallback to nearest pickable
@@ -181,6 +186,13 @@ namespace LostSouls.LLM
                 Debug.Log($"ActionExecutor: Target '{targetId}' is {dist} tiles away, moving there first");
                 character.MoveTo(target.GridPosition);
                 while (character.IsMoving) yield return null;
+            }
+
+            // Check if hands are full AFTER walking to the target
+            if (character.IsHoldingObject)
+            {
+                OnActionFeedback?.Invoke("My hands are full! I can't pick that up.", "confused");
+                yield break;
             }
 
             // Check if it's a gem on a pedestal
@@ -306,7 +318,11 @@ namespace LostSouls.LLM
             }
 
             Debug.Log($"ActionExecutor: Using held object on '{target.ObjectId}'");
-            character.UseHeldObjectOn(target);
+            bool useSuccess = character.UseHeldObjectOn(target);
+            if (!useSuccess && target is DoorObject)
+            {
+                OnActionFeedback?.Invoke("Hmm, this doesn't seem to work on this door.", "confused");
+            }
         }
 
         private GridObject FuzzyFindObject(string nameOrId)
@@ -327,6 +343,41 @@ namespace LostSouls.LLM
                     id.Contains(lower) || lower.Contains(id))
                 {
                     return o;
+                }
+            }
+
+            // Reverse vocabulary lookup
+            string realName = ReverseVocabularyLookup(nameOrId);
+            if (realName != null)
+            {
+                string realLower = realName.ToLower();
+                foreach (var o in allObjects)
+                {
+                    if (o == null) continue;
+                    string display = o.DisplayName?.ToLower() ?? "";
+                    if (display.Contains(realLower) || realLower.Contains(display))
+                        return o;
+                }
+            }
+
+            return null;
+        }
+
+        private string ReverseVocabularyLookup(string vocabularyName)
+        {
+            if (currentProfile?.perception_quirks == null) return null;
+
+            string vocabLower = vocabularyName.ToLower();
+            foreach (var quirk in currentProfile.perception_quirks)
+            {
+                if (quirk.type?.ToLower() == "own_vocabulary" &&
+                    quirk.config?.vocabulary_map?.HasEntries() == true)
+                {
+                    foreach (var entry in quirk.config.vocabulary_map.entries)
+                    {
+                        if (entry.replacement?.ToLower() == vocabLower)
+                            return entry.word;
+                    }
                 }
             }
             return null;
@@ -427,9 +478,18 @@ namespace LostSouls.LLM
 
             string targetLower = targetId.ToLower();
 
-            // Exit references
-            if (targetLower.Contains("exit") || targetLower.Contains("doorway") ||
-                targetLower.Contains("way out"))
+            // Reverse vocabulary lookup
+            string realName = ReverseVocabularyLookup(targetId);
+            string realLower = realName?.ToLower();
+
+            // Exit references (including vocabulary reverse lookup)
+            bool isExitRef = targetLower.Contains("exit") || targetLower.Contains("doorway") ||
+                targetLower.Contains("way out") || targetLower.Contains("leave") ||
+                targetLower.Contains("escape") || targetLower.Contains("through");
+            if (!isExitRef && realLower != null)
+                isExitRef = realLower.Contains("exit");
+
+            if (isExitRef)
             {
                 Tile exitTile = grid.GetExitTile();
                 if (exitTile != null) return exitTile.GridPosition;
@@ -437,9 +497,15 @@ namespace LostSouls.LLM
                 var doorTiles = grid.GetTilesOfType(TileType.Door);
                 if (doorTiles != null)
                 {
+                    // Prefer open doors (they are walkable exits)
                     foreach (var tile in doorTiles)
                     {
                         if (tile.IsOpen) return tile.GridPosition;
+                    }
+                    // Fall back to any door tile
+                    foreach (var tile in doorTiles)
+                    {
+                        return tile.GridPosition;
                     }
                 }
             }
@@ -460,6 +526,18 @@ namespace LostSouls.LLM
                     targetLower.Contains(displayLower) || targetLower.Contains(idLower))
                 {
                     return o.GridPosition;
+                }
+            }
+
+            // Reverse vocabulary match
+            if (realLower != null)
+            {
+                foreach (var o in allObjects)
+                {
+                    if (o == null) continue;
+                    string displayLower = o.DisplayName?.ToLower() ?? "";
+                    if (displayLower.Contains(realLower) || realLower.Contains(displayLower))
+                        return o.GridPosition;
                 }
             }
 

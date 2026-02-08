@@ -17,10 +17,20 @@ namespace LostSouls.Core
         [SerializeField] private Pathfinding pathfinding;
 
         [Header("Settings")]
+        [SerializeField] private bool debugEnabled = false;
         [SerializeField] private bool showDebugInfo = true;
 
         private void Update()
         {
+            // F12 toggles debug mode on/off
+            if (Input.GetKeyDown(KeyCode.F12))
+            {
+                debugEnabled = !debugEnabled;
+                Debug.Log($"Debug input {(debugEnabled ? "ENABLED" : "DISABLED")}");
+            }
+
+            if (!debugEnabled) return;
+
             if (character == null)
             {
                 character = FindObjectOfType<ExplorerController>();
@@ -116,7 +126,6 @@ namespace LostSouls.Core
             if (Input.GetKeyDown(KeyCode.Alpha3)) LoadDebugLevel(3);
             if (Input.GetKeyDown(KeyCode.Alpha4)) LoadDebugLevel(4);
             if (Input.GetKeyDown(KeyCode.Alpha5)) LoadDebugLevel(5);
-            if (Input.GetKeyDown(KeyCode.Alpha6)) LoadDebugLevel(6);
         }
 
         private void TryMove(Direction direction)
@@ -274,7 +283,7 @@ namespace LostSouls.Core
 
         private void OnGUI()
         {
-            if (!showDebugInfo) return;
+            if (!debugEnabled || !showDebugInfo) return;
 
             GUILayout.BeginArea(new Rect(10, 10, 300, 300));
             GUILayout.Label("=== Debug Controls ===");

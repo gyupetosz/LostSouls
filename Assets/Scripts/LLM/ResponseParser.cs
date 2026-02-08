@@ -135,7 +135,20 @@ namespace LostSouls.LLM
             catch (Exception e)
             {
                 Debug.LogWarning($"Failed to parse LLM response: {e.Message}\nRaw: {rawResponse}");
-                return new List<CharacterAction> { CharacterAction.Fallback() };
+                // Use the raw LLM text as dialogue instead of a generic fallback
+                string fallbackDialogue = rawResponse.Trim();
+                // Clean up any partial JSON artifacts
+                if (fallbackDialogue.Length > 300)
+                    fallbackDialogue = fallbackDialogue.Substring(0, 300) + "...";
+                return new List<CharacterAction>
+                {
+                    new CharacterAction
+                    {
+                        type = ActionType.None,
+                        dialogue = fallbackDialogue,
+                        emotion = "neutral"
+                    }
+                };
             }
         }
 
@@ -156,6 +169,18 @@ namespace LostSouls.LLM
             {
                 return match.Groups[1].Value.Trim();
             }
+
+            // If response has text before/after JSON, extract the JSON object
+            if (!text.TrimStart().StartsWith("{"))
+            {
+                int firstBrace = text.IndexOf('{');
+                int lastBrace = text.LastIndexOf('}');
+                if (firstBrace >= 0 && lastBrace > firstBrace)
+                {
+                    return text.Substring(firstBrace, lastBrace - firstBrace + 1).Trim();
+                }
+            }
+
             return text;
         }
 

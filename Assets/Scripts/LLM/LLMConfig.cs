@@ -20,23 +20,38 @@ namespace LostSouls.LLM
             // Clear stale cache so we always re-read from disk
             _instance = null;
 
+            // Try Resources/api_config.json first
             TextAsset configAsset = Resources.Load<TextAsset>("api_config");
-            if (configAsset == null)
+            if (configAsset != null)
             {
-                Debug.LogWarning("api_config.json not found in Resources/. Copy api_config.example.json to api_config.json and add your API key.");
-                return null;
+                _instance = JsonUtility.FromJson<LLMConfig>(configAsset.text);
+                if (_instance != null && _instance.IsValid())
+                {
+                    Debug.Log($"LLM config loaded from Resources: model={_instance.model}");
+                    return _instance;
+                }
             }
 
-            _instance = JsonUtility.FromJson<LLMConfig>(configAsset.text);
-
-            if (string.IsNullOrEmpty(_instance.openai_api_key) || _instance.openai_api_key == "YOUR_API_KEY_HERE")
+            // Fallback: read from project root api_config.template.json
+            string templatePath = System.IO.Path.Combine(Application.dataPath, "..", "api_config.template.json");
+            if (System.IO.File.Exists(templatePath))
             {
-                Debug.LogWarning("OpenAI API key not configured. Edit Assets/Resources/api_config.json with your key.");
+                string json = System.IO.File.ReadAllText(templatePath);
+                _instance = JsonUtility.FromJson<LLMConfig>(json);
+                if (_instance != null && _instance.IsValid())
+                {
+                    Debug.Log($"LLM config loaded from api_config.template.json: model={_instance.model}");
+                    return _instance;
+                }
+            }
+
+            if (_instance == null || !_instance.IsValid())
+            {
+                Debug.LogWarning("API key not configured. Put your key in Assets/Resources/api_config.json or api_config.template.json in the project root.");
                 _instance = null;
                 return null;
             }
 
-            Debug.Log($"LLM config loaded: model={_instance.model}");
             return _instance;
         }
 

@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -13,11 +14,18 @@ namespace LostSouls.UI
         [SerializeField] private GameObject bioPanel;
         [SerializeField] private Button toggleButton;
 
-        private bool isExpanded;
+        private bool isExpanded = false;
         private GameManager gameManager;
+        private bool subscribed;
 
-        private void Start()
+        private IEnumerator Start()
         {
+            // Wait until GameManager singleton is available
+            while (GameManager.Instance == null)
+            {
+                yield return null;
+            }
+
             gameManager = GameManager.Instance;
 
             if (toggleButton != null)
@@ -25,17 +33,26 @@ namespace LostSouls.UI
                 toggleButton.onClick.AddListener(ToggleBio);
             }
 
-            if (gameManager != null)
-            {
-                gameManager.OnLevelStarted += OnLevelStarted;
-            }
+            gameManager.OnLevelStarted += OnLevelStarted;
+            subscribed = true;
 
             // Start collapsed
             if (bioPanel != null)
                 bioPanel.SetActive(false);
+
+            // If a level is already loaded, populate immediately
+            if (gameManager.CurrentState == GameState.Playing)
+            {
+                PopulateBio();
+            }
         }
 
         private void OnLevelStarted(int levelId)
+        {
+            PopulateBio();
+        }
+
+        private void PopulateBio()
         {
             var levelData = gameManager.CurrentLevelData;
             if (levelData?.characters == null || levelData.characters.Count == 0) return;
@@ -49,7 +66,7 @@ namespace LostSouls.UI
             if (bioText != null && profile != null)
                 bioText.text = profile.bio ?? "";
 
-            // Check if bio should be visible
+            // Make sure the whole UI is visible (but keep bio panel collapsed)
             if (levelData.hints != null && levelData.hints.bio_visible)
             {
                 gameObject.SetActive(true);
@@ -71,7 +88,7 @@ namespace LostSouls.UI
 
         private void OnDestroy()
         {
-            if (gameManager != null)
+            if (subscribed && gameManager != null)
             {
                 gameManager.OnLevelStarted -= OnLevelStarted;
             }

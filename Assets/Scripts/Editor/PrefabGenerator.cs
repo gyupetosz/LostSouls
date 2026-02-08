@@ -448,7 +448,7 @@ namespace LostSouls.Editor
             energyRT.anchorMin = new Vector2(1f, 1f);
             energyRT.anchorMax = new Vector2(1f, 1f);
             energyRT.pivot = new Vector2(1f, 1f);
-            energyRT.sizeDelta = new Vector2(160, 60);
+            energyRT.sizeDelta = new Vector2(260, 100);
             energyRT.anchoredPosition = new Vector2(-15, -15);
 
             // Background panel
@@ -464,8 +464,8 @@ namespace LostSouls.Editor
             labelRT.offsetMin = new Vector2(10, 0);
             labelRT.offsetMax = new Vector2(-10, -4);
             TextMeshProUGUI labelText = labelObj.AddComponent<TextMeshProUGUI>();
-            labelText.text = "ENERGY";
-            labelText.fontSize = 14;
+            labelText.text = "\u26A1 ENERGY";
+            labelText.fontSize = 22;
             labelText.color = new Color(0.7f, 0.7f, 0.8f);
             labelText.alignment = TextAlignmentOptions.Left;
 
@@ -479,8 +479,8 @@ namespace LostSouls.Editor
             counterRT.offsetMax = new Vector2(-10, -4);
             TextMeshProUGUI energyText = counterObj.AddComponent<TextMeshProUGUI>();
             energyText.text = "5 / 5";
-            energyText.fontSize = 16;
-            energyText.color = new Color(0f, 0.8f, 1f);
+            energyText.fontSize = 36;
+            energyText.color = new Color(0.1f, 0.4f, 0.85f);
             energyText.alignment = TextAlignmentOptions.Right;
 
             // Fill bar background
@@ -503,7 +503,7 @@ namespace LostSouls.Editor
             fillRT.offsetMin = Vector2.zero;
             fillRT.offsetMax = Vector2.zero;
             Image fillBar = fillObj.AddComponent<Image>();
-            fillBar.color = new Color(0f, 0.8f, 1f);
+            fillBar.color = new Color(0.1f, 0.4f, 0.85f);
             fillBar.type = Image.Type.Filled;
             fillBar.fillMethod = Image.FillMethod.Horizontal;
             fillBar.fillAmount = 1f;
@@ -788,7 +788,9 @@ namespace LostSouls.Editor
             }
 
             // Pedestal
-            var pedestalPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Objects/Pedestal.prefab");
+            var pedestalPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/pedestal/pedestal.prefab");
+            if (pedestalPrefab == null)
+                pedestalPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Objects/Pedestal.prefab");
             if (pedestalPrefab != null) llSO.FindProperty("pedestalPrefab").objectReferenceValue = pedestalPrefab;
             llSO.ApplyModifiedProperties();
 

@@ -1,101 +1,125 @@
 {
   "level_id": 4,
-  "title": "Push and Shove",
-  "description": "Push the box onto the pressure plate. Only absolute directions, one move at a time.",
+  "title": "What Do You See?",
+  "description": "This explorer has their own names for everything. Ask what they see, and remember to tell them to hold on to things.",
   "grid": {
-    "width": 6,
+    "width": 5,
     "height": 5,
     "tiles": [
       { "x": 0, "y": 0, "type": "floor" },
       { "x": 1, "y": 0, "type": "floor" },
       { "x": 2, "y": 0, "type": "floor" },
       { "x": 3, "y": 0, "type": "floor" },
-      { "x": 4, "y": 0, "type": "floor" },
-      { "x": 5, "y": 0, "type": "door" },
+      { "x": 4, "y": 0, "type": "exit" },
 
       { "x": 0, "y": 1, "type": "floor" },
       { "x": 1, "y": 1, "type": "floor" },
       { "x": 2, "y": 1, "type": "floor" },
-      { "x": 3, "y": 1, "type": "pressure_plate" },
-      { "x": 4, "y": 1, "type": "floor" },
-      { "x": 5, "y": 1, "type": "wall" },
+      { "x": 3, "y": 1, "type": "floor" },
+      { "x": 4, "y": 1, "type": "wall" },
 
       { "x": 0, "y": 2, "type": "floor" },
       { "x": 1, "y": 2, "type": "floor" },
-      { "x": 2, "y": 2, "type": "wall" },
+      { "x": 2, "y": 2, "type": "floor" },
       { "x": 3, "y": 2, "type": "floor" },
-      { "x": 4, "y": 2, "type": "floor" },
-      { "x": 5, "y": 2, "type": "wall" },
+      { "x": 4, "y": 2, "type": "wall" },
 
       { "x": 0, "y": 3, "type": "floor" },
       { "x": 1, "y": 3, "type": "floor" },
       { "x": 2, "y": 3, "type": "floor" },
       { "x": 3, "y": 3, "type": "floor" },
-      { "x": 4, "y": 3, "type": "floor" },
-      { "x": 5, "y": 3, "type": "wall" },
+      { "x": 4, "y": 3, "type": "wall" },
 
       { "x": 0, "y": 4, "type": "wall" },
       { "x": 1, "y": 4, "type": "wall" },
       { "x": 2, "y": 4, "type": "wall" },
       { "x": 3, "y": 4, "type": "wall" },
-      { "x": 4, "y": 4, "type": "wall" },
-      { "x": 5, "y": 4, "type": "wall" }
+      { "x": 4, "y": 4, "type": "wall" }
     ]
   },
   "objects": [
     {
-      "id": "box_1",
-      "type": "box",
-      "display_name": "Wooden Box",
+      "id": "gem_red",
+      "type": "gem",
+      "display_name": "Ruby",
+      "position": { "x": 2, "y": 1 },
+      "properties": {
+        "color": "red",
+        "size": "small",
+        "shape": "round",
+        "target_pedestal_id": "pedestal_1",
+        "variant": 1
+      }
+    },
+    {
+      "id": "gem_blue",
+      "type": "gem",
+      "display_name": "Sapphire",
       "position": { "x": 2, "y": 3 },
       "properties": {
-        "size": "medium",
-        "weight": 1.0
+        "color": "blue",
+        "size": "small",
+        "shape": "diamond",
+        "target_pedestal_id": "",
+        "variant": 2
       }
     },
     {
-      "id": "plate_1",
-      "type": "pressure_plate",
-      "display_name": "Stone Plate",
-      "position": { "x": 3, "y": 1 },
+      "id": "pedestal_1",
+      "type": "pedestal",
+      "display_name": "Stone Pedestal",
+      "position": { "x": 2, "y": 2 },
       "properties": {
-        "linked_object_id": "door_exit"
-      }
-    },
-    {
-      "id": "door_exit",
-      "type": "door",
-      "display_name": "Exit Door",
-      "position": { "x": 5, "y": 0 },
-      "properties": {
-        "state": "closed"
+        "accepts_gem_id": "gem_red"
       }
     }
   ],
   "characters": [
     {
       "id": "explorer_1",
-      "name": "Grit",
-      "position": { "x": 0, "y": 0 },
-      "profile_id": "grit_simple",
+      "name": "Pip",
+      "position": { "x": 0, "y": 2 },
+      "profile_id": "pip_vocabulary",
       "profile": {
-        "profile_id": "grit_simple",
-        "name": "Grit",
-        "bio": "Grit knows up, down, left, right. No fancy navigation. One step, one push at a time. Grit is strong but simple.",
-        "model_prefab": "character5",
-        "comprehension": "simple",
-        "perception_quirks": [],
-        "personality_quirks": [],
+        "profile_id": "pip_vocabulary",
+        "name": "Pip",
+        "bio": "Pip sees the world differently and has their own names for everything. Pip tends to set things down unless you tell them to hold on tight.",
+        "model_prefab": "character6",
+        "comprehension": "standard",
+        "perception_quirks": [
+          {
+            "type": "own_vocabulary",
+            "config": {
+              "vocabulary_map": {
+                "entries": [
+                  { "word": "Ruby", "replacement": "sparkle" },
+                  { "word": "Sapphire", "replacement": "shimmer" },
+                  { "word": "Stone Pedestal", "replacement": "stone throne" },
+                  { "word": "Exit", "replacement": "bright doorway" }
+                ]
+              }
+            }
+          }
+        ],
+        "personality_quirks": [
+          {
+            "type": "forgetful",
+            "config": {
+              "refusal_response": "Oh, I put it down. Did you want me to carry it? You have to tell me to hold onto things!"
+            }
+          }
+        ],
         "direction_mode": "absolute"
       }
     }
   ],
   "objectives": [
+    { "type": "place_all_gems" },
     { "type": "reach_exit", "target_character": "explorer_1" }
   ],
-  "prompt_budget": 16,
+  "prompt_budget": 8,
   "prompt_max_length": 150,
-  "par_score": 13,
+  "par_score": 4,
   "hints": {
     "bio_visible": true,
     "observation_cost": 1

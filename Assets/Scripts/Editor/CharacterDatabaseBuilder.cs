@@ -112,13 +112,24 @@ namespace LostSouls.Editor
             return entry;
         }
 
+        // Clips that should loop
+        private static readonly HashSet<string> LoopingClips = new HashSet<string>(
+            System.StringComparer.OrdinalIgnoreCase)
+        { "Idle", "Walk", "Hold_Idle", "Hold_Walk", "Push_Idle" };
+
         private static AnimationClip FindAnimationClip(string folder, string clipName)
         {
             string fbxPath = $"{folder}/{clipName}.fbx";
             if (!File.Exists(fbxPath)) return null;
 
+            string assetPath = fbxPath.Replace("\\", "/");
+
+            // Set loop time via ModelImporter before loading the clip
+            bool shouldLoop = LoopingClips.Contains(clipName);
+            SetClipLoopTime(assetPath, shouldLoop);
+
             // Load all assets from the FBX — the clip is a sub-asset
-            Object[] assets = AssetDatabase.LoadAllAssetsAtPath(fbxPath.Replace("\\", "/"));
+            Object[] assets = AssetDatabase.LoadAllAssetsAtPath(assetPath);
             foreach (Object asset in assets)
             {
                 if (asset is AnimationClip clip && !clip.name.StartsWith("__preview__"))
@@ -128,7 +139,37 @@ namespace LostSouls.Editor
             }
 
             // Fallback: try loading the FBX directly as a clip
-            return AssetDatabase.LoadAssetAtPath<AnimationClip>(fbxPath.Replace("\\", "/"));
+            return AssetDatabase.LoadAssetAtPath<AnimationClip>(assetPath);
+        }
+
+        private static void SetClipLoopTime(string assetPath, bool loop)
+        {
+            ModelImporter importer = AssetImporter.GetAtPath(assetPath) as ModelImporter;
+            if (importer == null) return;
+
+            ModelImporterClipAnimation[] clips = importer.clipAnimations;
+            if (clips == null || clips.Length == 0)
+            {
+                // Use default clip animations as base if none are set
+                clips = importer.defaultClipAnimations;
+            }
+            if (clips == null || clips.Length == 0) return;
+
+            bool changed = false;
+            for (int i = 0; i < clips.Length; i++)
+            {
+                if (clips[i].loopTime != loop)
+                {
+                    clips[i].loopTime = loop;
+                    changed = true;
+                }
+            }
+
+            if (changed)
+            {
+                importer.clipAnimations = clips;
+                importer.SaveAndReimport();
+            }
         }
 
         private static Texture2D FindTexture(string folder)
@@ -305,6 +346,16 @@ namespace LostSouls.Editor
             clip.name = name;
             // Add a dummy keyframe so the clip has non-zero length
             clip.SetCurve("", typeof(Transform), "localPosition.x", AnimationCurve.Constant(0, 1f, 0));
+
+            // Set looping on clips that should loop
+            if (LoopingClips.Contains(name) || name == "Idle" || name == "Walk" ||
+                name == "HoldIdle" || name == "HoldWalk" || name == "PushIdle")
+            {
+                var settings = AnimationUtility.GetAnimationClipSettings(clip);
+                settings.loopTime = true;
+                AnimationUtility.SetAnimationClipSettings(clip, settings);
+            }
+
             return clip;
         }
 
